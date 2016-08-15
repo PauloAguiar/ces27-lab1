@@ -1014,13 +1014,13 @@ body .markdown-body
     page-break-after: avoid;
   }
 }
-</style><title>README</title></head><body><article class="markdown-body"><h1 id="lab-1-ces-27"><a name="user-content-lab-1-ces-27" href="#lab-1-ces-27" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>LAB 1 - CES-27</h1>
+</style><title>README</title></head><body><article class="markdown-body"><h1 id="ces-27-lab-1"><a name="user-content-ces-27-lab-1" href="#ces-27-lab-1" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>CES-27 - LAB 1</h1>
 <h2 id="mapreduce"><a name="user-content-mapreduce" href="#mapreduce" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>MapReduce</h2>
 <p>Nesse laboratório será implementada uma versão simplificada do modelo de programação MapReduce proposto por Jeffrey Dean e Sanjay Ghemawat no paper <em>MapReduce: Simplified Data Processing on Large Clusters</em>.<br />
 Implementações de MapReduce normalmente rodam em grandes clusters executando paralelamente e de forma distribuída milhares de <em>jobs</em>. Além disso, é fundamental que as frameworks sejam capazes de lidar com problemas básicos presentes em sistemas distribuídos: falhas e capacidade de operar em larga escala.</p>
 <p>O MapReduce é inspirado pelas funções map e reduce comumente utilizadas em programação funcional.</p>
 <p><strong>Map</strong><br />
-A função de Map é responsável por fazer um mapeamento dos dados de entrada em uma estrutura do tipo lista de chaves/valores. Esse mapeamento é executado de forma paralela para diversos dados de entradas gerando uma lista for <em>job</em> executado.</p>
+A função de Map é responsável por fazer um mapeamento dos dados de entrada em uma estrutura do tipo lista de chaves/valores. Esse mapeamento é executado de forma paralela para diversos dados de entradas gerando uma lista por <em>job</em> executado.</p>
 <p><strong>Reduce</strong><br />
 A função reduce recebe os resultados das funções de Map e faz uma sumarização dos valores obtidos, gerando uma nova lista de chaves/valores.</p>
 <p>Além dessas, outras funções são normalmente utilizadas: Shuffle(ou Partition), que vai distribuir os resultados dos maps em várias partições (múltiplos reduces), garantindo que os dados que similares serão alocados na mesma partição para ser executado por um mesmo Reduce.</p>
@@ -1088,9 +1088,9 @@ Contém o código que implementa as operações map e reduce.</p>
   wordcount_test.go:191: Description: two entries with different keys<br />
   wordcount_test.go:191: Description: non-numeric counter<br />
 PASS<br />
-ok    github.com/pauloaguiar/lab1-ces27/wordcount 0.039s</p>
+ok    github.com/pauloaguiar/lab1-ces27/wordcount 0.039s  </p>
 </blockquote>
-<p>É possível executar um test isoladamente utilizando o parâmetro -run regex</p>
+<p>É possível executar um teste isoladamente utilizando o parâmetro -run <em>regex</em></p>
 <p>wordcount$ go test -v -run Map</p>
 <blockquote>
 <p>=== RUN   TestMapFunc<br />
@@ -1105,10 +1105,10 @@ ok    github.com/pauloaguiar/lab1-ces27/wordcount 0.039s</p>
   wordcount_test.go:120: Description: special characters<br />
   wordcount_test.go:120: Description: uppercase characters<br />
 PASS<br />
-ok    github.com/pauloaguiar/lab1-ces27/wordcount 0.023s</p>
+ok    github.com/pauloaguiar/lab1-ces27/wordcount 0.023s  </p>
 </blockquote>
 <p><strong>Implementando splitData</strong></p>
-<p>Para arquivos muito grandes, será necessário particionar o arquivo de entrada de forma a distribuir a carga e vários maps.</p>
+<p>Para arquivos muito grandes, será necessário particionar o arquivo de entrada de forma a distribuir a carga em vários maps.</p>
 <p>Abra o arquivo <em>data.go</em> e implemente a função <strong>splitData</strong>.</p>
 <p>Para verificar sua implementação, execute os testes fornecidos da seguinte forma:</p>
 <p>wordcount$ go test -v -run Split<br />
@@ -1119,7 +1119,7 @@ ok    github.com/pauloaguiar/lab1-ces27/wordcount 0.023s</p>
     wordcount_test.go:60: Description: text file smaller than chunk size<br />
     wordcount_test.go:60: Description: text file has exact chunk size<br />
 PASS<br />
-ok      github.com/pauloaguiar/lab1-ces27/wordcount 0.039s</p>
+ok      github.com/pauloaguiar/lab1-ces27/wordcount 0.039s  </p>
 <p><strong>Executando MapReduce</strong></p>
 <p>Na pasta <em>wordcount</em> execute:</p>
 <p>wordcount$ go build<br />
@@ -1146,5 +1146,5 @@ Storing locally.    MapId: 4        Len: 17819<br />
 Storing locally.    MapId: 5        Len: 18415<br />
 Storing locally.    MapId: 6        Len: 17824<br />
 Storing locally.    MapId: 7        Len: 17806<br />
-Fanning out file result\result-0</p>
+Fanning out file result\result-0  </p>
 </blockquote></article></body></html>
