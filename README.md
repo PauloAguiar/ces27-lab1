@@ -7,7 +7,7 @@ Implementações de MapReduce normalmente rodam em grandes clusters executando p
 O MapReduce é inspirado pelas funções map e reduce comumente utilizadas em programação funcional.
 
 **Map**
-A função de Map é responsável por fazer um mapeamento dos dados de entrada em uma estrutura do tipo lista de chaves/valores. Esse mapeamento é executado de forma paralela para diversos dados de entradas gerando uma lista for *job* executado.
+A função de Map é responsável por fazer um mapeamento dos dados de entrada em uma estrutura do tipo lista de chaves/valores. Esse mapeamento é executado de forma paralela para diversos dados de entradas gerando uma lista por *job* executado.
 
 **Reduce**
 A função reduce recebe os resultados das funções de Map e faz uma sumarização dos valores obtidos, gerando uma nova lista de chaves/valores.
@@ -91,7 +91,7 @@ wordcount$ go test -v
 > ok  	github.com/pauloaguiar/lab1-ces27/wordcount	0.039s
 
 
-É possível executar um test isoladamente utilizando o parâmetro -run regex
+É possível executar um teste isoladamente utilizando o parâmetro -run *regex*
 
 wordcount$ go test -v -run Map
 > === RUN   TestMapFunc
@@ -111,7 +111,7 @@ wordcount$ go test -v -run Map
 
 **Implementando splitData**
 
-Para arquivos muito grandes, será necessário particionar o arquivo de entrada de forma a distribuir a carga e vários maps.
+Para arquivos muito grandes, será necessário particionar o arquivo de entrada de forma a distribuir a carga em vários maps.
 
 Abra o arquivo *data.go* e implemente a função **splitData**.
 
