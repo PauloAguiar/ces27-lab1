@@ -1,46 +1,83 @@
 package main
 
 import (
+	"bytes"
 	"github.com/pauloaguiar/lab1-ces27/mapreduce"
 	"hash/fnv"
+	"strconv"
+	"strings"
+	"unicode"
 )
 
 // mapFunc is called for each array of bytes read from the splitted files. For wordcount
 // it should convert it into an array and parses it into an array of KeyValue that have
 // all the words in the input.
 func mapFunc(input []byte) (result []mapreduce.KeyValue) {
-	// 	Pay attention! We are getting an array of bytes.
-	//
-	// 	To decide if a character is a delimiter of a word, use the following check:
-	//		!unicode.IsLetter(c) && !unicode.IsNumber(c)
-	//
-	//	Map should also make words lower cased:
-	//		strings.ToLower(string)
+	var (
+		readWord bytes.Buffer
+		kvPairs  map[string]int
+	)
 
-	/////////////////////////
-	// YOUR CODE GOES HERE //
-	/////////////////////////
-	return make([]mapreduce.KeyValue, 0)
+	kvPairs = make(map[string]int)
+
+	// Append a whitespace to the end so that the last word is also evaluated
+	for _, c := range string(append(input, byte(' '))) {
+		if !unicode.IsLetter(c) && !unicode.IsNumber(c) {
+			if readWord.Len() > 0 {
+
+				word := readWord.String()
+				word = strings.ToLower(word)
+
+				if _, present := kvPairs[word]; present {
+					kvPairs[word]++
+				} else {
+					kvPairs[word] = 1
+				}
+			}
+
+			readWord.Reset()
+
+		} else {
+			readWord.WriteString(string(c))
+		}
+	}
+
+	result = make([]mapreduce.KeyValue, 0, len(kvPairs))
+	for index, value := range kvPairs {
+		result = append(result, mapreduce.KeyValue{index, strconv.Itoa(value)})
+	}
+
+	return result
 }
 
 // reduceFunct is called for each merged array of KeyValue resulted from all map jobs.
 // It should return a similar array that summarizes all similar keys in the input.
 func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
-	// 	Maybe it's easier if we have an auxiliary structure? Which one?
-	//
-	// 	You can check if a map have a key as following:
-	// 		if _, ok := myMap[myKey]; !ok {
-	//			// Don't have the key
-	//		}
-	//
-	// 	Reduce will receive KeyValue pairs that have string values, you may need
-	// 	convert those values to int before being able to use it in operations.
-	//  	strconv.Atoi(string_number)
+	var (
+		kvInputMap map[string]int
+		value      int
+		err        error
+	)
 
-	/////////////////////////
-	// YOUR CODE GOES HERE //
-	/////////////////////////
-	return make([]mapreduce.KeyValue, 0)
+	kvInputMap = make(map[string]int)
+
+	for _, kvInputPair := range input {
+		if value, err = strconv.Atoi(kvInputPair.Value); err != nil {
+			value = 1
+		}
+		if _, keyPresent := kvInputMap[kvInputPair.Key]; keyPresent {
+			kvInputMap[kvInputPair.Key] += value
+		} else {
+			kvInputMap[kvInputPair.Key] = value
+		}
+	}
+
+	result = make([]mapreduce.KeyValue, 0, len(kvInputMap))
+	for index, value := range kvInputMap {
+		result = append(result, mapreduce.KeyValue{index, strconv.Itoa(value)})
+	}
+
+	return result
 }
 
 // shuffleFunc will shuffle map job results into different job tasks. It should assert that

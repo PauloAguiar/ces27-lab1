@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/pauloaguiar/lab1-ces27/mapreduce"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+	"unicode"
 )
 
 const (
@@ -20,7 +22,7 @@ const (
 // fanInData will run a goroutine that reads files crated by splitData and share them with
 // the mapreduce framework through the one-way channel. It'll buffer data up to
 // MAP_BUFFER_SIZE (files smaller than chunkSize) and resume loading them
-// after they are read on the other side of the channle (in the mapreduce package)
+// after they are read on the other side of the channel (in the mapreduce package)
 func fanInData(numFiles int) <-chan []byte {
 	var (
 		err    error
@@ -87,22 +89,55 @@ func fanOutData() (chan<- []mapreduce.KeyValue, chan bool) {
 // Reads input file and split it into files smaller than chunkSize.
 // CUTCUTCUTCUTCUT!
 func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
-	// 	When you are reading a file and the end-of-file is found, an error is returned.
-	// 	To check for it use the following code:
-	// 		if bytesRead, err = file.Read(buffer); err != nil {
-	// 			if err == io.EOF {
-	// 				// EOF error
-	// 			} else {
-	//				panic(err)
-	//			}
-	// 		}
-	//
-	// 	Use the mapFileName function generate the name of the files!
+	var (
+		file           *os.File
+		buffer         []byte
+		bytesRead      int
+		totalBytesRead int64
+		lastByte       byte
+		foundEOF       bool
+	)
 
-	/////////////////////////
-	// YOUR CODE GOES HERE //
-	/////////////////////////
+	if file, err = os.Open(fileName); err != nil {
+		panic(err)
+	}
+
+	buffer = make([]byte, chunkSize)
+
 	numMapFiles = 0
+	totalBytesRead = 0
+	foundEOF = false
+
+	for !foundEOF {
+		if bytesRead, err = file.Read(buffer); err != nil {
+			if err == io.EOF {
+				foundEOF = true
+			} else {
+				panic(err)
+			}
+		}
+
+		if bytesRead > 0 {
+			lastByte = buffer[bytesRead-1]
+			for unicode.IsLetter(rune(lastByte)) || unicode.IsNumber(rune(lastByte)) {
+				bytesRead -= 1
+				lastByte = buffer[bytesRead-1]
+			}
+
+			buffer = buffer[:bytesRead]
+			if err = ioutil.WriteFile(mapFileName(numMapFiles), buffer, 0644); err != nil {
+				panic(err)
+			}
+
+			numMapFiles++
+			totalBytesRead += int64(bytesRead)
+
+			if _, err = file.Seek(totalBytesRead, 0); err != nil {
+				panic(err)
+			}
+		}
+	}
+
 	return numMapFiles, nil
 }
 
