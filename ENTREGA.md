@@ -43,21 +43,21 @@ Os comandos a seguir requerem uma instalação da ferramenta [Git](https://git-s
 Além disso, as ferramentas de Go devem estar devidamente instaladas e configuadas, incluindo o GOPATH (ver [Go - Getting Started](https://golang.org/doc/install) em caso de dúvidas). Para verificar a sua instalação, basta digitar no prompt o seguinte comando:
 
 **$ go env**
->set GOARCH=amd64
->set GOBIN=
->set GOEXE=.exe
->set GOHOSTARCH=amd64
->set GOHOSTOS=windows
->set GOOS=windows
->set GOPATH=C:\gows
->set GORACE=
->set GOROOT=C:\tools\Go
->set GOTOOLDIR=C:\tools\Go\pkg\tool\windows_amd64
->set GO15VENDOREXPERIMENT=1
->set CC=gcc
->set GOGCCFLAGS=-m64 -mthreads -fmessage-length=0
->set CXX=g++
->set CGO_ENABLED=1
+>set GOARCH=amd64  
+>set GOBIN=  
+>set GOEXE=.exe  
+>set GOHOSTARCH=amd64  
+>set GOHOSTOS=windows  
+>set GOOS=windows  
+>set GOPATH=C:\gows  
+>set GORACE=  
+>set GOROOT=C:\tools\Go  
+>set GOTOOLDIR=C:\tools\Go\pkg\tool\windows_amd64  
+>set GO15VENDOREXPERIMENT=1  
+>set CC=gcc  
+>set GOGCCFLAGS=-m64 -mthreads -fmessage-length=0  
+>set CXX=g++  
+>set CGO_ENABLED=1  
 
 Com todas as ferramentas devidamente configuradas, obtenha os arquivos do lab usando o seguinte comando:
 
@@ -71,10 +71,10 @@ Você não deve alterar o diretório, pois isso quebrará as referências intern
 **$ git remote add fork https://github.com/CHANGE_USER/ces27-lab1 **
 
 **$ git remote -v**
->fork   https://github.com/USER/ces27-lab1/ces27-lab1 (fetch)
->fork   https://github.com/USER/ces27-lab1/ces27-lab1 (push)
->origin https://github.com/pauloaguiar/ces27-lab1/ces27-lab1 (fetch)
->origin https://github.com/pauloaguiar/ces27-lab1/ces27-lab1 (push)
+>fork   https://github.com/USER/ces27-lab1/ces27-lab1 (fetch)  
+>fork   https://github.com/USER/ces27-lab1/ces27-lab1 (push)  
+>origin https://github.com/pauloaguiar/ces27-lab1/ces27-lab1 (fetch)  
+>origin https://github.com/pauloaguiar/ces27-lab1/ces27-lab1 (push)  
 
 Com isso você pode agora realizar as alterações pedidas para gerar a solução do laboratório no novo diretório.
 
