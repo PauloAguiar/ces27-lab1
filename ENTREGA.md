@@ -32,7 +32,7 @@ Fazer um Fork do repositório clicando no seguinte botão: ![Fork Button](https:
 
 Agora associado à sua conta existe uma cópia do repositório do laboratório.
 
-![Forked Repository](doc/forked-repo.png)
+![Forked Repository](doc/forked-repo.png?raw=true)
 ## Preparando o Repositório local
 
 Os comandos a seguir requerem uma instalação da ferramenta [Git](https://git-scm.com/). Para verificar a sua instalação basta digitar o seguinte comando no prompt:
@@ -109,7 +109,7 @@ Preencher os dados da *pull request*.
 
 A primeira *pull request* deve ser feita no *branch* **master** do repositório base. Após isso será criada um branch com nome igual ao seu usuário do github no repositório base. Todos os *pull requests* seguintes devem ser feitos diretamente nesse novo *branch*.
 
-![Branches](doc/branches.png)
+![Branches](doc/branches.png?raw=true)
 
 Você pode enviar mais de um *pull request* com a sua solução, somente o estado final do seu *branch* até a data limite será considerado.
 
