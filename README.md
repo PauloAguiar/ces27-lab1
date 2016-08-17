@@ -8,10 +8,10 @@ Implementações de MapReduce normalmente rodam em grandes clusters executando p
 
 O MapReduce é inspirado pelas funções map e reduce comumente utilizadas em programação funcional.
 
-**Map**
+**Map**  
 A função de Map é responsável por fazer um mapeamento dos dados de entrada em uma estrutura do tipo lista de chaves/valores. Esse mapeamento é executado de forma paralela para diversos dados de entradas gerando uma lista por *job* executado.
 
-**Reduce**
+**Reduce**  
 A função reduce recebe os resultados das funções de Map e faz uma sumarização dos valores obtidos, gerando uma nova lista de chaves/valores.
 
 Além dessas, outras funções são normalmente utilizadas: Shuffle(ou Partition), que vai distribuir os resultados dos maps em várias partições (múltiplos reduces), garantindo que os dados que similares serão alocados na mesma partição para ser executado por um mesmo Reduce.
@@ -60,7 +60,9 @@ As funções *Map* e *Reduce* (no arquivo *wordcount.go*) estão sem implementa�
 
 **Implementando Map e Reduce**
 
-Abra o arquivo *wordcount.go* e implemente as funções **Map** e **Reduce**.
+Abra o arquivo *wordcount.go* e implemente as funções **Map** e **Reduce** utilizando como base a imagem a seguir:
+
+![MapReduce functions](doc/Map-Reduce.png)
 
 Para verificar sua implementação, execute os testes fornecidos da seguinte forma na pasta *wordcount*:
 
@@ -116,6 +118,8 @@ wordcount$ go test -v -run Map
 Para arquivos muito grandes, será necessário particionar o arquivo de entrada de forma a distribuir a carga em vários maps.
 
 Abra o arquivo *data.go* e implemente a função **splitData**.
+
+O objetivo dessa função é dividir grandes arquivos em arquivos menores, configurado pelo parâmetro chunkSize. Valores comuns em operações reais para o chunkSize são entre 15MB~65MB.
 
 Para verificar sua implementação, execute os testes fornecidos da seguinte forma:
 

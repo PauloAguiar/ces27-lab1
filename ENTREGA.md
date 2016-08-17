@@ -68,7 +68,7 @@ Esse comando vai colocar no seu *workspace* os arquivos do laboratório, no dire
 
 Você não deve alterar o diretório, pois isso quebrará as referências internas do código. Ao invés disso, vamos adicionar o seu fork como um repositório remoto. Altere o a parte com CHANGE_USER para o seu usuario do github e execute o comando abaixo:
 
-**$ git remote add fork https://github.com/CHANGE_USER/ces27-lab1 **
+**$ git remote add fork https://github.com/CHANGE_USER/ces27-lab1**
 
 **$ git remote -v**
 >fork   https://github.com/USER/ces27-lab1/ces27-lab1 (fetch)  
