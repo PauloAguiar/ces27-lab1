@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/pauloaguiar/lab1-ces27/mapreduce"
 	"hash/fnv"
 )
@@ -20,6 +21,7 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
+	fmt.Println("Change")
 	return make([]mapreduce.KeyValue, 0)
 }
 
