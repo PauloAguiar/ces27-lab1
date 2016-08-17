@@ -126,14 +126,14 @@ O objetivo dessa função é dividir grandes arquivos em arquivos menores, confi
 Para verificar sua implementação, execute os testes fornecidos da seguinte forma:
 
 wordcount$ go test -v -run Split
-=== RUN   TestSplitData  
---- PASS: TestSplitData (0.01s)  
-	wordcount_test.go:60: Description: text file empty  
-	wordcount_test.go:60: Description: text files bigger than chunk size  
-	wordcount_test.go:60: Description: text file smaller than chunk size  
-	wordcount_test.go:60: Description: text file has exact chunk size  
-PASS  
-ok  	github.com/pauloaguiar/lab1-ces27/wordcount	0.039s  
+> === RUN   TestSplitData  
+> --- PASS: TestSplitData (0.01s)  
+> 	wordcount_test.go:60: Description: text file empty  
+> 	wordcount_test.go:60: Description: text files bigger than chunk size  
+> 	wordcount_test.go:60: Description: text file smaller than chunk size  
+> 	wordcount_test.go:60: Description: text file has exact chunk size  
+> PASS  
+> ok  	github.com/pauloaguiar/lab1-ces27/wordcount	0.039s  
 
 **Executando MapReduce**
 

@@ -1115,15 +1115,17 @@ ok    github.com/pauloaguiar/lab1-ces27/wordcount 0.023s  </p>
 <p>Abra o arquivo <em>data.go</em> e implemente a função <strong>splitData</strong>.</p>
 <p>O objetivo dessa função é dividir grandes arquivos em arquivos menores, configurado pelo parâmetro chunkSize. Valores comuns em operações reais para o chunkSize são entre 15MB~65MB.</p>
 <p>Para verificar sua implementação, execute os testes fornecidos da seguinte forma:</p>
-<p>wordcount$ go test -v -run Split<br />
-=== RUN   TestSplitData<br />
+<p>wordcount$ go test -v -run Split</p>
+<blockquote>
+<p>=== RUN   TestSplitData<br />
 &mdash; PASS: TestSplitData (0.01s)<br />
-    wordcount_test.go:60: Description: text file empty<br />
-    wordcount_test.go:60: Description: text files bigger than chunk size<br />
-    wordcount_test.go:60: Description: text file smaller than chunk size<br />
-    wordcount_test.go:60: Description: text file has exact chunk size<br />
+  wordcount_test.go:60: Description: text file empty<br />
+  wordcount_test.go:60: Description: text files bigger than chunk size<br />
+  wordcount_test.go:60: Description: text file smaller than chunk size<br />
+  wordcount_test.go:60: Description: text file has exact chunk size<br />
 PASS<br />
-ok      github.com/pauloaguiar/lab1-ces27/wordcount 0.039s  </p>
+ok    github.com/pauloaguiar/lab1-ces27/wordcount 0.039s  </p>
+</blockquote>
 <p><strong>Executando MapReduce</strong></p>
 <p>Na pasta <em>wordcount</em> execute:</p>
 <p>wordcount$ go build<br />
