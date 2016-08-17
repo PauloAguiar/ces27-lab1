@@ -1,3 +1,5 @@
+Para saber mais sobre a entrega do trabalho, acessar: [Entrega](ENTREGA.md)
+
 # CES-27 - LAB 1
 ## MapReduce
 
