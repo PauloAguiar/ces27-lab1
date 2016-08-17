@@ -1039,14 +1039,14 @@ body .markdown-body
 <p>Acessar o seguinte repositório: <a href="https://github.com/PauloAguiar/ces27-lab1">CES-27 - Lab 1</a></p>
 <p>Fazer um Fork do repositório clicando no seguinte botão: <img alt="Fork Button" src="https://help.github.com/assets/images/help/repository/fork_button.jpg" /></p>
 <p>Agora associado à sua conta existe uma cópia do repositório do laboratório.</p>
-<p><img alt="Forked Repository" src="///C://gows/src/github.com/pauloaguiar/ces27-lab1/doc/forked-repo.png" /></p>
+<p><img alt="Forked Repository" src="///C://gows/src/github.com/pauloaguiar/ces27-lab1/doc/forked-repo.PNG?raw=true" /></p>
 <h2 id="preparando-o-repositorio-local"><a name="user-content-preparando-o-repositorio-local" href="#preparando-o-repositorio-local" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Preparando o Repositório local</h2>
-<p>Os comandos a seguir requerem uma instalação da ferramnta <a href="https://git-scm.com/">Git</a>. Para verificar a sua instalação basta digitar o seguinte comando no prompt:</p>
+<p>Os comandos a seguir requerem uma instalação da ferramenta <a href="https://git-scm.com/">Git</a>. Para verificar a sua instalação basta digitar o seguinte comando no prompt:</p>
 <p><strong>$ git &ndash;version</strong></p>
 <blockquote>
 <p>git version 2.9.2.windows.1</p>
 </blockquote>
-<p>Além disso, as ferramentas de Go devem estar devidamente instaladas e configuadas, incluindo o GOPATH (ver <a href="/GO_INSTALL.md">GO_INSTALL</a> em caso de dúvidas). Para verificar a sua instalação, basta digitar no prompt o seguinte comando:</p>
+<p>Além disso, as ferramentas de Go devem estar devidamente instaladas e configuadas, incluindo o GOPATH (ver <a href="https://golang.org/doc/install">Go - Getting Started</a> em caso de dúvidas). Para verificar a sua instalação, basta digitar no prompt o seguinte comando:</p>
 <p><strong>$ go env</strong></p>
 <blockquote>
 <p>set GOARCH=amd64<br />
@@ -1063,7 +1063,7 @@ set GO15VENDOREXPERIMENT=1<br />
 set CC=gcc<br />
 set GOGCCFLAGS=-m64 -mthreads -fmessage-length=0<br />
 set CXX=g++<br />
-set CGO_ENABLED=1</p>
+set CGO_ENABLED=1  </p>
 </blockquote>
 <p>Com todas as ferramentas devidamente configuradas, obtenha os arquivos do lab usando o seguinte comando:</p>
 <p><strong>$ go get -d github.com/pauloaguiar/ces27-lab1</strong></p>
@@ -1072,13 +1072,13 @@ set CGO_ENABLED=1</p>
 </blockquote>
 <p>Esse comando vai colocar no seu <em>workspace</em> os arquivos do laboratório, no diretório <em>src/github.com/pauloaguiar/ces27-lab1</em>.</p>
 <p>Você não deve alterar o diretório, pois isso quebrará as referências internas do código. Ao invés disso, vamos adicionar o seu fork como um repositório remoto. Altere o a parte com CHANGE_USER para o seu usuario do github e execute o comando abaixo:</p>
-<p><strong>$ git remote add fork <a href="https://github.com/CHANGE_USER/ces27-lab1"><a href="https://github.com/CHANGE_USER/ces27-lab1">https://github.com/CHANGE_USER/ces27-lab1</a></a> </strong></p>
+<p>*<em>$ git remote add fork <a href="https://github.com/CHANGE_USER/ces27-lab1*"><a href="https://github.com/CHANGE_USER/ces27-lab1*">https://github.com/CHANGE_USER/ces27-lab1*</a></a></em></p>
 <p><strong>$ git remote -v</strong></p>
 <blockquote>
 <p>fork   <a href="https://github.com/USER/ces27-lab1/ces27-lab1">https://github.com/USER/ces27-lab1/ces27-lab1</a> (fetch)<br />
 fork   <a href="https://github.com/USER/ces27-lab1/ces27-lab1">https://github.com/USER/ces27-lab1/ces27-lab1</a> (push)<br />
 origin <a href="https://github.com/pauloaguiar/ces27-lab1/ces27-lab1">https://github.com/pauloaguiar/ces27-lab1/ces27-lab1</a> (fetch)<br />
-origin <a href="https://github.com/pauloaguiar/ces27-lab1/ces27-lab1">https://github.com/pauloaguiar/ces27-lab1/ces27-lab1</a> (push)</p>
+origin <a href="https://github.com/pauloaguiar/ces27-lab1/ces27-lab1">https://github.com/pauloaguiar/ces27-lab1/ces27-lab1</a> (push)  </p>
 </blockquote>
 <p>Com isso você pode agora realizar as alterações pedidas para gerar a solução do laboratório no novo diretório.</p>
 <h3 id="code-review"><a name="user-content-code-review" href="#code-review" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Code Review</h3>
@@ -1086,7 +1086,7 @@ origin <a href="https://github.com/pauloaguiar/ces27-lab1/ces27-lab1">https://gi
 <h2 id="enviando-a-solucao"><a name="user-content-enviando-a-solucao" href="#enviando-a-solucao" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Enviando a Solução</h2>
 <p>Quando estiver pronto para enviar a sua solução, o aluno deve dar <em>push</em> do seu repositório local para o repositório remoto <em>fork</em>:</p>
 <p><strong>$ git push fork</strong></p>
-<p>Utilizar as suas credênciais do github.</p>
+<p>Utilizar as suas credenciais do github.</p>
 <p>Com a sua solução já no seu repositório remoto, você deve ir até a página do mesmo e criar uma <em>pull request</em>:</p>
 <p><img alt="New Pull Request" src="https://help.github.com/assets/images/help/pull_requests/pull-request-start-review-button.png" /></p>
 <p>Ná página seguinte você pode verificar as alterações que estão sendo enviadas.</p>
@@ -1099,7 +1099,7 @@ origin <a href="https://github.com/pauloaguiar/ces27-lab1/ces27-lab1">https://gi
 </ul>
 <p><img alt="Pull Request" src="https://help.github.com/assets/images/help/pull_requests/pullrequest-description.png" /></p>
 <p>A primeira <em>pull request</em> deve ser feita no <em>branch</em> <strong>master</strong> do repositório base. Após isso será criada um branch com nome igual ao seu usuário do github no repositório base. Todos os <em>pull requests</em> seguintes devem ser feitos diretamente nesse novo <em>branch</em>.</p>
-<p><img alt="Branches" src="///C://gows/src/github.com/pauloaguiar/ces27-lab1/doc/branches.png" /></p>
+<p><img alt="Branches" src="///C://gows/src/github.com/pauloaguiar/ces27-lab1/doc/branches.PNG?raw=true" /></p>
 <p>Você pode enviar mais de um <em>pull request</em> com a sua solução, somente o estado final do seu <em>branch</em> até a data limite será considerado.</p>
 <h2 id="colaborando"><a name="user-content-colaborando" href="#colaborando" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Colaborando</h2>
 <p>Todos os alunos estão convidados a colaborar com o conteúdo da prática, propondo mudanças, relatando erros ou enviando <em>pull requests</em> com melhorias.</p>

@@ -88,7 +88,7 @@ Quando estiver pronto para enviar a sua solução, o aluno deve dar *push* do se
 
 **$ git push fork**
 
-Utilizar as suas credênciais do github.
+Utilizar as suas credenciais do github.
 
 Com a sua solução já no seu repositório remoto, você deve ir até a página do mesmo e criar uma *pull request*:
 

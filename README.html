@@ -1060,7 +1060,9 @@ Contém o código que implementa as operações map e reduce.</p>
 <p>Leia a função <em>RunSequential</em> no arquivo <em>mapreduce.go</em> e entenda a execução sequencial da operação de MapReduce. Atenção nas chamadas das funções <em>Map</em> e <em>Reduce</em>.</p>
 <p>As funções <em>Map</em> e <em>Reduce</em> (no arquivo <em>wordcount.go</em>) estão sem implementação. </p>
 <p><strong>Implementando Map e Reduce</strong></p>
-<p>Abra o arquivo <em>wordcount.go</em> e implemente as funções <strong>Map</strong> e <strong>Reduce</strong>.</p>
+<p>Abra o arquivo <em>wordcount.go</em> e implemente as funções <strong>Map</strong> e <strong>Reduce</strong> utilizando como base a imagem a seguir:</p>
+<p><img alt="MapReduce functions" src="///C://gows/src/github.com/pauloaguiar/ces27-lab1/doc/Map-Reduce.png" /></p>
+<p>A saída de ambas as funções é uma estrutura do tipo <em>map[string]string</em>.</p>
 <p>Para verificar sua implementação, execute os testes fornecidos da seguinte forma na pasta <em>wordcount</em>:</p>
 <p>wordcount$ go test -v</p>
 <blockquote>
@@ -1111,6 +1113,7 @@ ok    github.com/pauloaguiar/lab1-ces27/wordcount 0.023s  </p>
 <p><strong>Implementando splitData</strong></p>
 <p>Para arquivos muito grandes, será necessário particionar o arquivo de entrada de forma a distribuir a carga em vários maps.</p>
 <p>Abra o arquivo <em>data.go</em> e implemente a função <strong>splitData</strong>.</p>
+<p>O objetivo dessa função é dividir grandes arquivos em arquivos menores, configurado pelo parâmetro chunkSize. Valores comuns em operações reais para o chunkSize são entre 15MB~65MB.</p>
 <p>Para verificar sua implementação, execute os testes fornecidos da seguinte forma:</p>
 <p>wordcount$ go test -v -run Split<br />
 === RUN   TestSplitData<br />

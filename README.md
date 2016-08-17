@@ -64,6 +64,8 @@ Abra o arquivo *wordcount.go* e implemente as funções **Map** e **Reduce** uti
 
 ![MapReduce functions](doc/Map-Reduce.png)
 
+A saída de ambas as funções é uma estrutura do tipo *map[string]string*.
+
 Para verificar sua implementação, execute os testes fornecidos da seguinte forma na pasta *wordcount*:
 
 wordcount$ go test -v
