@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/miltoneiji/mapreduce"
+	"github.com/pauloaguiar/lab1-ces27/mapreduce"
 	"hash/fnv"
     "unicode"
     "bytes"
