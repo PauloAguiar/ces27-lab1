@@ -3,11 +3,13 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pauloaguiar/lab1-ces27/mapreduce"
+	"github.com/miltoneiji/mapreduce"
 	"io/ioutil"
+    "io"
 	"log"
 	"os"
 	"path/filepath"
+    "unicode"
 )
 
 const (
@@ -17,7 +19,7 @@ const (
 	REDUCE_BUFFER_SIZE = 10
 )
 
-// fanInData will run a goroutine that reads files crated by splitData and share them with
+// fanInData will run a goroutine that reads files created by splitData and share them with
 // the mapreduce framework through the one-way channel. It'll buffer data up to
 // MAP_BUFFER_SIZE (files smaller than chunkSize) and resume loading them
 // after they are read on the other side of the channle (in the mapreduce package)
@@ -87,22 +89,70 @@ func fanOutData() (chan<- []mapreduce.KeyValue, chan bool) {
 // Reads input file and split it into files smaller than chunkSize.
 // CUTCUTCUTCUTCUT!
 func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
-	// 	When you are reading a file and the end-of-file is found, an error is returned.
-	// 	To check for it use the following code:
-	// 		if bytesRead, err = file.Read(buffer); err != nil {
-	// 			if err == io.EOF {
-	// 				// EOF error
-	// 			} else {
-	//				panic(err)
-	//			}
-	// 		}
-	//
-	// 	Use the mapFileName function generate the name of the files!
+    
+    // Opening the file
+    file, err := os.Open(fileName)
+    if err != nil {
+        log.Fatal(err)
+    }
 
-	/////////////////////////
-	// YOUR CODE GOES HERE //
-	/////////////////////////
-	numMapFiles = 0
+    // My Variables
+    numMapFiles = 0
+    chunkSize = chunkSize - 10
+    readBuffer := make([]byte, chunkSize)
+    afterBuffer := make([]byte, chunkSize)
+    bytesToWrite := 0
+
+    // Reading the file little by little and then storing them
+    for {
+        // Reading
+        bytesRead, err := file.Read(readBuffer)
+        
+        // If some error occurs
+        if err != nil && err != io.EOF{
+            panic(err)
+        }
+        if bytesRead == 0 {
+            break
+        }
+
+        // Creating an output file
+        out, err := os.Create(mapFileName(numMapFiles))
+        if err != nil {
+            panic(err)
+        }
+        numMapFiles = numMapFiles + 1
+        
+        // Writing
+        // Stop breaking words!
+        by := readBuffer[bytesRead-1]
+        newBytesToWrite := 0
+        for unicode.IsLetter(rune(by)) || unicode.IsNumber(rune(by)) {
+            bytesRead = bytesRead - 1
+            newBytesToWrite = newBytesToWrite + 1
+            by = readBuffer[bytesRead-1]
+        }
+        
+        if _, err := out.Write(afterBuffer[:bytesToWrite]); err != nil {
+            panic(err)
+        }
+        if _, err := out.Write(readBuffer[:bytesRead]); err != nil {
+            panic(err)
+        }
+        
+        for idx := 0; idx<newBytesToWrite; idx++ {
+            afterBuffer[idx] = readBuffer[bytesRead+idx]
+        }
+
+        bytesToWrite = newBytesToWrite
+
+        // Closing output file
+        out.Close()
+    }
+
+    //Closing the file
+    file.Close()
+
 	return numMapFiles, nil
 }
 
