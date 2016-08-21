@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"math"
 )
 
 const (
@@ -99,10 +100,26 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	//
 	// 	Use the mapFileName function generate the name of the files!
 
-	/////////////////////////
-	// YOUR CODE GOES HERE //
-	/////////////////////////
-	numMapFiles = 0
+	file, err := os.Open(fileName)
+	if err != nil {
+		return 0, err
+	}
+
+	fileStatus, _ := file.Stat()
+	fileSize := fileStatus.Size()
+	numMapFiles = int(math.Ceil(float64(fileSize) / float64(chunkSize)))
+
+	for i := 0; i < numMapFiles; i++ {
+		currentChunkSize := int(math.Min(float64(chunkSize), float64(int(fileSize)-i*chunkSize)))
+		currentChunkBytes := make([]byte, currentChunkSize)
+		file.Read(currentChunkBytes)
+
+		os.Create(mapFileName(i))
+		ioutil.WriteFile(mapFileName(i), currentChunkBytes, os.ModeAppend)
+	}
+
+	file.Close()
+	
 	return numMapFiles, nil
 }
 
