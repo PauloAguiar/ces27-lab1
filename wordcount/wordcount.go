@@ -18,7 +18,7 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	//		strings.ToLower(string)
 
 	/////////////////////////
-	// YOUR CODE GOES HERE //
+	// YOUR CODE GOES HERE // TEEEEEEEEESTE
 	/////////////////////////
 	return make([]mapreduce.KeyValue, 0)
 }
