@@ -58,10 +58,29 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 	// 	convert those values to int before being able to use it in operations.
 	//  	strconv.Atoi(string_number)
 
-	/////////////////////////
-	// YOUR CODE GOES HERE //
-	/////////////////////////
-	return make([]mapreduce.KeyValue, 0)
+	var happyMap = make([]mapreduce.KeyValue, 0)
+	var found = false
+	for _, Hmap := range input {
+		for j, myHmap := range happyMap {
+			if myHmap.Key == Hmap.Key {
+				inc1, err1 := strconv.Atoi(Hmap.Value)
+				inc2, err2 := strconv.Atoi(myHmap.Value)
+				if err1 != nil {
+					inc1 = 1
+				}
+				if err2 != nil {
+					inc2 = 1
+				}
+				happyMap[j].Value = strconv.Itoa(inc1 + inc2)
+				found = true
+			}
+		}
+		if !found {
+			happyMap = append(happyMap, Hmap)
+		}
+		found = false
+	}
+	return happyMap
 }
 
 // shuffleFunc will shuffle map job results into different job tasks. It should assert that
