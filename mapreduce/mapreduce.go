@@ -20,7 +20,7 @@ func RunSequential(task *Task) {
 
 	log.Print("Running RunSequential...")
 
-	_ = os.Mkdir(REDUCE_PATH, os.ModeDir)
+	_ = os.Mkdir(REDUCE_PATH, 0700)
 
 	for v := range task.InputChan {
 		mapResult = task.Map(v)

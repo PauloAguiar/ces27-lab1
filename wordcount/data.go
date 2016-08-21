@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pauloaguiar/lab1-ces27/mapreduce"
+	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"io/ioutil"
     "io"
 	"log"
@@ -96,14 +96,31 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
         log.Fatal(err)
     }
 
-    // My Variables
+    /*  The resize of the chunkSize parameter is due to the way this
+    /   function was implemented. It works buffering whatever word left
+    /   incomplete in the current file to write it in the next file.
+    /   The goal is to not split words between the  files.
+    /   The problem occurs when the word added to the next file makes
+    /   the new file bigger than the chunkSize. The solution was to
+    /   simply save in each file created a space for a possible new word
+    /   from the previous file. A size of 10 bytes is okay for most of the
+    /   languages.
+    */
     numMapFiles = 0
-    chunkSize = chunkSize - 10
-    readBuffer := make([]byte, chunkSize)
-    afterBuffer := make([]byte, chunkSize)
+    if chunkSize - 10 > 0 {
+        chunkSize = chunkSize - 10
+    }
+    readBuffer := make([]byte, chunkSize) // Buffer used to read from the source
+    afterBuffer := make([]byte, 15) // Buffer used to store a word from the previous file
     bytesToWrite := 0
 
-    // Reading the file little by little and then storing them
+    /* Do it until the end of the source file:
+    /  Read the source file using a buffer of size defined by the chunkSize.
+    /  Verify if the last word is incomplete.
+    /  If it is incomplete: save it and write it in the next file
+    /  If it is not: next iteration
+    /  next iteration
+    */
     for {
         // Reading
         bytesRead, err := file.Read(readBuffer)
@@ -125,12 +142,12 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
         
         // Writing
         // Stop breaking words!
-        by := readBuffer[bytesRead-1]
+        readBufferIterator := readBuffer[bytesRead-1]
         newBytesToWrite := 0
-        for unicode.IsLetter(rune(by)) || unicode.IsNumber(rune(by)) {
+        for unicode.IsLetter(rune(readBufferIterator)) || unicode.IsNumber(rune(readBufferIterator)) {
             bytesRead = bytesRead - 1
             newBytesToWrite = newBytesToWrite + 1
-            by = readBuffer[bytesRead-1]
+            readBufferIterator = readBuffer[bytesRead-1]
         }
         
         if _, err := out.Write(afterBuffer[:bytesToWrite]); err != nil {

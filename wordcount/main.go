@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"github.com/pauloaguiar/lab1-ces27/mapreduce"
+    "github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"log"
 	"os"
 )
@@ -32,8 +32,8 @@ func main() {
 	log.Println("Reduce Jobs:", *reduceJobs)
 	log.Println("Chunk Size:", *chunkSize)
 
-	_ = os.Mkdir(MAP_PATH, os.ModeDir)
-	_ = os.Mkdir(RESULT_PATH, os.ModeDir)
+	_ = os.Mkdir(MAP_PATH, 0700)
+	_ = os.Mkdir(RESULT_PATH, 0700)
 
 	// Splits data into chunks with size up to chunkSize
 	if numFiles, err = splitData(*file, *chunkSize); err != nil {

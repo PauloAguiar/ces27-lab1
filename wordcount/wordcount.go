@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/pauloaguiar/lab1-ces27/mapreduce"
+	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"hash/fnv"
     "unicode"
     "bytes"
@@ -25,10 +25,10 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	// YOUR CODE GOES HERE //
 	/////////////////////////
     var buffer bytes.Buffer
-    input = append(input, '.')
-    var words []string
-    var m map[string]int
-    m = make(map[string]int)
+    input = append(input, '.') // trick: in case the last word in the input
+    var words []string         // ends exactly in the end of the input,
+    var m map[string]int       // no delimiter would be found. To not deal
+    m = make(map[string]int)   // with this case I simply put a delimiter.
     for idx := range input {
         c := input[idx]
         if !unicode.IsLetter(rune(c)) && !unicode.IsNumber(rune(c)) {
