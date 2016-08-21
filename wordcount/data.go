@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
-	"math"
+	"unicode"
 )
 
 const (
@@ -105,22 +106,39 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 		return 0, err
 	}
 
-	fileStatus, _ := file.Stat()
-	fileSize := fileStatus.Size()
-	numMapFiles = int(math.Ceil(float64(fileSize) / float64(chunkSize)))
+	numMapFiles = 0
+	buffer := make([]byte, chunkSize)
 
-	for i := 0; i < numMapFiles; i++ {
-		currentChunkSize := int(math.Min(float64(chunkSize), float64(int(fileSize)-i*chunkSize)))
-		currentChunkBytes := make([]byte, currentChunkSize)
-		file.Read(currentChunkBytes)
+	for err == nil {
+		bytesRead, err := file.Read(buffer) 
+		// rewind file if necessary
+		if (bytesRead != 0) {
+			countExtra := 0
+			currentByte := buffer[bytesRead-1-countExtra]
+			for unicode.IsLetter(rune(currentByte)) || unicode.IsNumber(rune(currentByte)) {
+				countExtra++
+				if countExtra >= bytesRead-1 {break}
+				currentByte = buffer[bytesRead-1-countExtra]
+			} 
+			if err != io.EOF {
+				bytesRead = bytesRead-countExtra
+				file.Seek(int64(-1*countExtra), 1)
+			}
 
-		os.Create(mapFileName(i))
-		ioutil.WriteFile(mapFileName(i), currentChunkBytes, os.ModeAppend)
+			os.Create(mapFileName(numMapFiles))
+			ioutil.WriteFile(mapFileName(numMapFiles), buffer[:bytesRead], os.ModeAppend)
+			numMapFiles++
+		} else {
+			break
+		}
 	}
 
 	file.Close()
-	
-	return numMapFiles, nil
+	if (err == io.EOF) {
+		err = nil
+	}
+
+	return numMapFiles, err
 }
 
 func mapFileName(id int) string {
