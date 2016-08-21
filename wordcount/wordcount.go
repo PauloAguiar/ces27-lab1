@@ -1,8 +1,12 @@
 package main
 
 import (
-	"github.com/pauloaguiar/lab1-ces27/mapreduce"
 	"hash/fnv"
+	"strconv"
+	"strings"
+	"unicode"
+
+	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 )
 
 // mapFunc is called for each array of bytes read from the splitted files. For wordcount
@@ -17,10 +21,27 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	//	Map should also make words lower cased:
 	//		strings.ToLower(string)
 
-	/////////////////////////
-	// YOUR CODE GOES HERE //
-	/////////////////////////
-	return make([]mapreduce.KeyValue, 0)
+	var happyMap = make([]mapreduce.KeyValue, 0)
+	str := strings.ToLower(string(input[:]) + " ")
+	word := ""
+	for _, c := range str {
+		if unicode.IsLetter(c) || unicode.IsNumber(c) {
+			word += string(c)
+		} else if word != "" {
+			for i, Hmap := range happyMap {
+				if Hmap.Key == word {
+					inc, _ := strconv.Atoi(Hmap.Value)
+					happyMap[i].Value = strconv.Itoa(inc + 1)
+					word = ""
+				}
+			}
+			if word != "" {
+				happyMap = append(happyMap, mapreduce.KeyValue{Key: word, Value: "1"})
+				word = ""
+			}
+		}
+	}
+	return happyMap
 }
 
 // reduceFunct is called for each merged array of KeyValue resulted from all map jobs.
