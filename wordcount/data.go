@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
+	"unicode"
 )
 
 const (
@@ -99,11 +101,44 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	//
 	// 	Use the mapFileName function generate the name of the files!
 
-	/////////////////////////
-	// YOUR CODE GOES HERE //
-	/////////////////////////
+	file, err := os.Open(fileName)
+	if err != nil {
+		return 0, err
+	}
+
 	numMapFiles = 0
-	return numMapFiles, nil
+	buffer := make([]byte, chunkSize)
+
+	for err == nil {
+		bytesRead, err := file.Read(buffer) 
+		// rewind file if necessary
+		if (bytesRead != 0) {
+			countExtra := 0
+			currentByte := buffer[bytesRead-1-countExtra]
+			for unicode.IsLetter(rune(currentByte)) || unicode.IsNumber(rune(currentByte)) {
+				countExtra++
+				if countExtra >= bytesRead-1 {break}
+				currentByte = buffer[bytesRead-1-countExtra]
+			} 
+			if err != io.EOF {
+				bytesRead = bytesRead-countExtra
+				file.Seek(int64(-1*countExtra), 1)
+			}
+
+			os.Create(mapFileName(numMapFiles))
+			ioutil.WriteFile(mapFileName(numMapFiles), buffer[:bytesRead], os.ModeAppend)
+			numMapFiles++
+		} else {
+			break
+		}
+	}
+
+	file.Close()
+	if (err == io.EOF) {
+		err = nil
+	}
+
+	return numMapFiles, err
 }
 
 func mapFileName(id int) string {

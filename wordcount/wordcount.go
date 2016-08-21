@@ -3,6 +3,9 @@ package main
 import (
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"hash/fnv"
+	"unicode"
+	"strings"
+	"strconv"
 )
 
 // mapFunc is called for each array of bytes read from the splitted files. For wordcount
@@ -17,10 +20,30 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	//	Map should also make words lower cased:
 	//		strings.ToLower(string)
 
-	/////////////////////////
-	// YOUR CODE GOES HERE //
-	/////////////////////////
-	return make([]mapreduce.KeyValue, 0)
+	wordMap := make(map[string]int)
+	wordKeyVal := make([]mapreduce.KeyValue, 0)
+
+	inputString := strings.ToLower(string(input[:])) + " "
+	currentWord := ""
+
+	for _, inputChar := range inputString {
+		if unicode.IsLetter(inputChar) || unicode.IsNumber(inputChar) {
+			currentWord += string(inputChar)
+		} else if len(currentWord) > 0 {
+			value, exists := wordMap[currentWord]
+			if !exists {
+				value = 0
+			}
+			wordMap[currentWord] = value+1
+			currentWord = ""
+		}
+	}
+
+	for key, value := range wordMap {
+		wordKeyVal = append(wordKeyVal, mapreduce.KeyValue{Key: key, Value: strconv.Itoa(value)})
+	}
+
+	return wordKeyVal
 }
 
 // reduceFunc is called for each merged array of KeyValue resulted from all map jobs.
@@ -37,10 +60,27 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 	// 	convert those values to int before being able to use it in operations.
 	//  	strconv.Atoi(string_number)
 
-	/////////////////////////
-	// YOUR CODE GOES HERE //
-	/////////////////////////
-	return make([]mapreduce.KeyValue, 0)
+	wordMap := make(map[string]int)
+	wordKeyVal := make([]mapreduce.KeyValue, 0)
+	
+	for _, keyVal := range input {
+		value, exists := wordMap[keyVal.Key]
+		if !exists {
+			value = 0
+		}
+		currrentValue, err := strconv.Atoi(keyVal.Value)
+		if err != nil {
+			currrentValue = 1
+		}
+		wordMap[keyVal.Key] = value + currrentValue
+		
+	}
+	
+	for key, value := range wordMap {
+		wordKeyVal = append(wordKeyVal, mapreduce.KeyValue{Key: key, Value: strconv.Itoa(value)})
+	}
+	
+	return wordKeyVal
 }
 
 // shuffleFunc will shuffle map job results into different job tasks. It should assert that
