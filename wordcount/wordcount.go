@@ -23,7 +23,7 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	return make([]mapreduce.KeyValue, 0)
 }
 
-// reduceFunct is called for each merged array of KeyValue resulted from all map jobs.
+// reduceFunc is called for each merged array of KeyValue resulted from all map jobs.
 // It should return a similar array that summarizes all similar keys in the input.
 func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 	// 	Maybe it's easier if we have an auxiliary structure? Which one?
