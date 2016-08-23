@@ -102,10 +102,10 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	// 	Use the mapFileName function generate the name of the files!
 
 	file, err := os.Open(fileName)
-	if err == nil {
+	if err != nil {
+		file.Close()
 		return 0, nil
 	}
-	defer file.Close()
 
 	fileInfo, _ := file.Stat()
 	var fileSize = fileInfo.Size()
@@ -123,6 +123,7 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 		ioutil.WriteFile(fileName, partBuffer, os.ModeAppend)
 	}
 
+	file.Close()
 	return numMapFiles, nil
 }
 
