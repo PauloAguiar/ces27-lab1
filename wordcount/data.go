@@ -101,29 +101,81 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	//
 	// 	Use the mapFileName function generate the name of the files!
 
+	// Tentativa infeliz de particionar arquivos tomando cuidado para
+	//  não cortar as palavras ao meio
+	// var file *os.File
+
+	// if file, err := os.Open(fileName); err != nil {
+	// 	file.Close()
+	// 	return 0, nil
+	// }
+	// defer file.Close()
+
+	// numMapFiles = 0
+
+	// fileInfo, _ := file.Stat()
+	// var remainingSize = fileInfo.Size()
+
+	// for remainingSize > int64(chunkSize) {
+	// 	numMapFiles++
+
+	// 	var decCarac = 0
+	// 	var carac = '0'
+	// 	for unicode.IsLetter(carac) || unicode.IsNumber(carac) {
+	// 		var carac, _ = file.Seek(remainingSize-int64(decCarac), 0)
+	// 		b2 := make([]byte, 2)
+	// 		fmt.Printf("%d: %s\n", carac, string(b2))
+	// 		decCarac++
+	// 	}
+
+	// 	partSize := chunkSize - decCarac
+	// 	remainingSize -= int64(partSize)
+
+	// 	partBuffer := make([]byte, partSize)
+
+	// 	partFileName := mapFileName(numMapFiles)
+	// 	os.Create(partFileName)
+	// 	ioutil.WriteFile(partFileName, partBuffer, os.ModeAppend)
+	// }
+
+	// numMapFiles++
+
+	// partBuffer := make([]byte, remainingSize)
+	// partFileName := mapFileName(numMapFiles)
+	// os.Create(partFileName)
+	// ioutil.WriteFile(partFileName, partBuffer, os.ModeAppend)
+
+	// Safely openning/closing the input text file
 	file, err := os.Open(fileName)
 	if err != nil {
 		file.Close()
 		return 0, nil
 	}
+	defer file.Close()
 
+	// Estimating the number of divisions in mapFiles
 	fileInfo, _ := file.Stat()
-	var fileSize = fileInfo.Size()
+	fileSize := fileInfo.Size()
 	numMapFiles = int(math.Ceil(float64(fileSize) / float64(chunkSize)))
 
+	// For each generated MapFile
 	for i := 0; i < numMapFiles; i++ {
 
-		partSize := int(math.Min(float64(chunkSize), float64(int(fileSize)-int(i*chunkSize))))
-		partBuffer := make([]byte, partSize)
+		// Calculates the mapSize and then generates mapBuffer
+		mapSize := int(math.Min(float64(chunkSize), float64(int(fileSize)-int(i*chunkSize))))
+		mapBuffer := make([]byte, mapSize)
 
-		file.Read(partBuffer)
+		// Move file ahead
+		file.Read(mapBuffer)
 
-		mapFileName(i)
-		os.Create(fileName)
-		ioutil.WriteFile(fileName, partBuffer, os.ModeAppend)
+		// Generates new MapFile's name and content
+		mapName := mapFileName(i)
+		mapFile, _ := os.Create(mapName)
+		ioutil.WriteFile(mapName, mapBuffer, os.ModeAppend)
+		mapFile.Close()
 	}
 
-	file.Close()
+	// Returning numMapFiles
 	return numMapFiles, nil
 }
 
