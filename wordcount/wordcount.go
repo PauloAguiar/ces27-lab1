@@ -72,28 +72,38 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 	// 	convert those values to int before being able to use it in operations.
 	//  	strconv.Atoi(string_number)
 
+	// Creating empty output Map for this problem
 	var happyMap = make([]mapreduce.KeyValue, 0)
-	var found = false
-	for _, Hmap := range input {
-		for j, myHmap := range happyMap {
-			if myHmap.Key == Hmap.Key {
-				inc1, err1 := strconv.Atoi(Hmap.Value)
-				inc2, err2 := strconv.Atoi(myHmap.Value)
-				if err1 != nil {
-					inc1 = 1
-				}
-				if err2 != nil {
-					inc2 = 1
-				}
-				happyMap[j].Value = strconv.Itoa(inc1 + inc2)
-				found = true
-			}
+	// Creating auxiliary hashMap to help the solution
+	var bizuMap = make(map[string]int)
+	// For each hashmap of input array of Hashmaps
+	for _, eachMap := range input {
+		// Tries to get eachMap value detected on previous steps
+		var value, err = strconv.Atoi(eachMap.Value)
+		// If it's not numeric, gets its length
+		if err != nil {
+			value = len(eachMap.Value)
 		}
-		if !found {
-			happyMap = append(happyMap, Hmap)
+		// Checks if the eachMap's Key is on auxiliary hashMap
+		//  (that's a O(1) operation. Super fast)
+		if _, ok := bizuMap[eachMap.Key]; ok {
+			// The key exists. Increments counter
+			bizuMap[eachMap.Key] += value
+		} else {
+			// The key doesn't exists. Starts counter
+			bizuMap[eachMap.Key] = value
 		}
-		found = false
 	}
+	// Just go through the hashmap, adding results Maps to happyMap
+	for key, value := range bizuMap {
+		// Create a new Map with Value and Key of result
+		var resultMap mapreduce.KeyValue
+		resultMap.Key = key
+		resultMap.Value = strconv.Itoa(value)
+		// Appends it to the array of Maps
+		happyMap = append(happyMap, resultMap)
+	}
+	// HappyMap built in O(n) solution
 	return happyMap
 }
 
