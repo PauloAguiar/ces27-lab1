@@ -24,21 +24,20 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	// Creating empty output Map for this problem
 	var happyMap = make([]mapreduce.KeyValue, 0)
 	// Adding a final separator to the last word of text
+	//  so that it's detected inside for loop
 	text := strings.ToLower(string(input) + " ")
-	// Initializing empty string "word"
 	var word string
-	// For each character of text:
 	for _, char := range text {
 		// Append letters and numbers to the word
 		if unicode.IsLetter(char) || unicode.IsNumber(char) {
 			word += string(char)
-			// If it's a separator or unknown symbol,
-			//  we have formed a new word. Check if it's not empty
-		} else if word != "" {
+		} 
+		// If it's a separator or unknown symbol,
+		//  we have formed a new word. Check if it's not empty
+		else if word != "" {
 			// Check if that word already exists on our happyMap
 			for i, eachMap := range happyMap {
 				if eachMap.Key == word {
-					// Increase occurrency value on happyMap
 					value, _ := strconv.Atoi(eachMap.Value)
 					happyMap[i].Value = strconv.Itoa(value + 1)
 					// Starts detecting new word
@@ -47,14 +46,12 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 			}
 			// If the detected word wasn't found on happyMap
 			if word != "" {
-				// Includes it on the happyMap with value 1
 				happyMap = append(happyMap, mapreduce.KeyValue{Key: word, Value: "1"})
 				// Starts detecting new word
 				word = ""
 			}
 		}
 	}
-	// Returns happyMap
 	return happyMap
 }
 
@@ -75,32 +72,28 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 	// Creating empty output Map for this problem
 	var happyMap = make([]mapreduce.KeyValue, 0)
 	// Creating auxiliary hashMap to help the solution
-	var bizuMap = make(map[string]int)
-	// For each hashmap of input array of Hashmaps
+	var auxMap = make(map[string]int)
 	for _, eachMap := range input {
 		// Tries to get eachMap value detected on previous steps
 		var value, err = strconv.Atoi(eachMap.Value)
-		// If it's not numeric, gets its length
+		// If it's not numeric, gets its length as value
 		if err != nil {
 			value = len(eachMap.Value)
 		}
 		// Checks if the eachMap's Key is on auxiliary hashMap
 		//  (that's a O(1) operation. Super fast)
-		if _, ok := bizuMap[eachMap.Key]; ok {
-			// The key exists. Increments counter
-			bizuMap[eachMap.Key] += value
+		if _, ok := auxMap[eachMap.Key]; ok {
+			auxMap[eachMap.Key] += value
 		} else {
 			// The key doesn't exists. Starts counter
-			bizuMap[eachMap.Key] = value
+			auxMap[eachMap.Key] = value
 		}
 	}
 	// Just go through the hashmap, adding results Maps to happyMap
-	for key, value := range bizuMap {
-		// Create a new Map with Value and Key of result
+	for key, value := range auxMap {
 		var resultMap mapreduce.KeyValue
 		resultMap.Key = key
 		resultMap.Value = strconv.Itoa(value)
-		// Appends it to the array of Maps
 		happyMap = append(happyMap, resultMap)
 	}
 	// HappyMap built in O(n) solution
