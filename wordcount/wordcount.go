@@ -3,6 +3,10 @@ package main
 import (
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"hash/fnv"
+	"unicode" //coloquei
+	"fmt"
+	"strconv"
+	"strings"
 )
 
 // mapFunc is called for each array of bytes read from the splitted files. For wordcount
@@ -20,7 +24,36 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
-	return make([]mapreduce.KeyValue, 0)
+	//Go'eh unicode entao nao posso ler byte a byte
+	var text = string(input)
+	text = text + " " //bizu pra entrar a ultima palavra
+	text = strings.ToLower(text)
+	var word string = ""
+	var mapAux map[string]int = make(map[string]int)//make aloca
+	
+	for _, c := range text {  //i is 0,1, etc  c is the character
+		if unicode.IsLetter(c) || unicode.IsNumber(c) {
+			word = word + string(c)
+		} else {
+			if word != "" {
+				_, ok := mapAux[word]
+				if !ok {  //If the map does not exist,  create it
+					mapAux[word] = 1
+				} else { //If the map exists, add 1 (counting more one equal word)
+					mapAux[word]++
+				} 
+				//println(word)
+				word = "" //reset the word to compute the next one
+			}
+		}	
+	}
+	
+	for k, v := range mapAux {
+		result = append(result, mapreduce.KeyValue{k,strconv.Itoa(v)})
+	}
+	//fmt.Printf("%v", mapAux)
+	return result
+	//return make([]mapreduce.KeyValue, 0)//saida padrao pro teste rodar
 }
 
 // reduceFunc is called for each merged array of KeyValue resulted from all map jobs.
