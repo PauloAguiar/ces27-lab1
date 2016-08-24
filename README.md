@@ -1,10 +1,22 @@
+# CES-27 - LAB 1
+
 Para saber mais sobre a entrega do trabalho, acessar: [Entrega](ENTREGA.md)
 
-# CES-27 - LAB 1
+## Informações Gerais:
+
+O bloco a seguir indica que um comando deve ser executado na linha de comando:
+```shell
+folder$ git --version
+```
+> git version 2.9.2.windows.1
+
+**folder** é a pasta onde o comando deve ser executado. Caso esteja vazio, o comando deve ser executado na pasta raiz do projeto (ces27-lab1).
+**$** indica o começo do comando a ser executado.
+**git version 2.9.2.windows.1** é a saída no console.
 ## MapReduce
 
-Nesse laboratório será implementada uma versão simplificada do modelo de programação MapReduce proposto por Jeffrey Dean e Sanjay Ghemawat no paper *MapReduce: Simplified Data Processing on Large Clusters*.
-Implementações de MapReduce normalmente rodam em grandes clusters executando paralelamente e de forma distribuída milhares de *jobs*. Além disso, é fundamental que as frameworks sejam capazes de lidar com problemas básicos presentes em sistemas distribuídos: falhas e capacidade de operar em larga escala.
+Nesse laboratório será implementada uma versão simplificada do modelo de programação MapReduce proposto por Jeffrey Dean e Sanjay Ghemawat no paper [MapReduce: Simplified Data Processing on Large Clusters](http://research.google.com/archive/mapreduce.html).
+Implementações de MapReduce normalmente rodam em grandes clusters executando paralelamente e de forma distribuída milhares de tarefas. Além disso, é fundamental que as frameworks sejam capazes de lidar com problemas básicos presentes em sistemas distribuídos: falhas e capacidade de operar em larga escala.
 
 O MapReduce é inspirado pelas funções map e reduce comumente utilizadas em programação funcional.
 
@@ -18,7 +30,24 @@ Além dessas, outras funções são normalmente utilizadas: Shuffle(ou Partition
 
 ## Parte I - Execução sequencial
 
-Nesse lab vamos implementar uma operação de contagem de palavras(word count). O nosso objetivo é conseguir processar grandes arquivos de textos e listar o número de vezes que cada palavra é utilizada.
+Nesse lab vamos implementar uma operação de contagem de palavras(word count). O nosso objetivo é conseguir processar grandes arquivos de textos e listar o número de vezes que cada palavra é utilizada. O pseudocódigo da operação (proposto no paper original) pode ser visto abaixo:
+
+```python
+map(String key, String value):
+    # key: document name
+    # value: document contents
+    for each word w in value:
+        EmitIntermediate(w, "1");
+
+reduce(String key, Iterator values):
+    # key: a word
+    # values: a list of counts
+    int result = 0;
+    for each v in values:
+        result += ParseInt(v);
+    Emit(AsString(result));
+```
+
 
 Inicialmente o diretório da nossa aplicação MapReduce possui a seguinte estrutura:
 
@@ -30,6 +59,8 @@ Inicialmente o diretório da nossa aplicação MapReduce possui a seguinte estru
 	* data.go
 	* wordcount.go
 	* wordcount_test.go
+    * files\
+        * pg1342.txt 
 
 **mapreduce** é o pacote que implementa a framework MapReduce e deve se abster de detalhes da operação a ser realizada.
 **wordcount** é o pacote que implementa a operação Contador de Palavras, e deve importar e extender as operaçãos da API provida pelo pacote acima.
@@ -58,6 +89,7 @@ Leia a função *RunSequential* no arquivo *mapreduce.go* e entenda a execução
 
 As funções *Map* e *Reduce* (no arquivo *wordcount.go*) estão sem implementação. 
 
+
 **Implementando Map e Reduce**
 
 Abra o arquivo *wordcount.go* e implemente as funções **Map** e **Reduce** utilizando como base a imagem a seguir:
@@ -66,9 +98,13 @@ Abra o arquivo *wordcount.go* e implemente as funções **Map** e **Reduce** uti
 
 A saída de ambas as funções é uma estrutura do tipo *[]mapreduce.KeyValue*.
 
+Note que na função de Map, na imagem temos vários elementos com a mesma chave. Uma outra possibilidade é retornar o total de ocorrências no arquivo. Neste caso, ao invés de retornar [(Car, 1), (Car, 1), (River, 1)], retornaríamos [(Car, 2), (River, 1)]. Ambos os casos devem funcionar corretamente.
+
 Para verificar sua implementação, execute os testes fornecidos da seguinte forma na pasta *wordcount*:
 
+```shell
 wordcount$ go test -v
+```
 > === RUN   TestSplitData  
 > --- PASS: TestSplitData (0.01s)  
 > 	wordcount_test.go:60: Description: text file empty  
@@ -95,11 +131,12 @@ wordcount$ go test -v
 > 	wordcount_test.go:191: Description: non-numeric counter  
 > PASS  
 > ok  	github.com/pauloaguiar/lab1-ces27/wordcount	0.039s  
+    
+É possível executar um teste isoladamente utilizando o parâmetro -run *regex*, onde *regex* deve ser substituído por uma expressão regular que vai ser comparada com os nomes das funções de teste.
 
-
-É possível executar um teste isoladamente utilizando o parâmetro -run *regex*
-
+```shell
 wordcount$ go test -v -run Map
+```
 > === RUN   TestMapFunc  
 > --- PASS: TestMapFunc (0.00s)  
 > 	wordcount_test.go:120: Description: empty  
@@ -125,7 +162,9 @@ O objetivo dessa função é dividir grandes arquivos em arquivos menores, confi
 
 Para verificar sua implementação, execute os testes fornecidos da seguinte forma:
 
+```shell
 wordcount$ go test -v -run Split
+```
 > === RUN   TestSplitData  
 > --- PASS: TestSplitData (0.01s)  
 > 	wordcount_test.go:60: Description: text file empty  
@@ -139,8 +178,10 @@ wordcount$ go test -v -run Split
 
 Na pasta *wordcount* execute:
 
+```shell
 wordcount$ go build
 wordcount$ wordcount.exe -file files/pg1342.txt
+```
 > Running in local mode.  
 > File: files\pg1342.txt  
 > Reduce Jobs: 1  
