@@ -23,35 +23,36 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 
 	// Creating empty output Map for this problem
 	var happyMap = make([]mapreduce.KeyValue, 0)
+	// Creating auxiliary hashMap to help the solution
+	var auxMap = make(map[string]int)
 	// Adding a final separator to the last word of text
-	//  so that it's detected inside for loop
+	//  so that it's detected inside the for loop
 	text := strings.ToLower(string(input) + " ")
 	var word string
 	for _, char := range text {
 		// Append letters and numbers to the word
 		if unicode.IsLetter(char) || unicode.IsNumber(char) {
 			word += string(char)
-		} 
-		// If it's a separator or unknown symbol,
-		//  we have formed a new word. Check if it's not empty
-		else if word != "" {
+		} else if word != "" { // We have formed a new word. Check if it's not empty.
 			// Check if that word already exists on our happyMap
-			for i, eachMap := range happyMap {
-				if eachMap.Key == word {
-					value, _ := strconv.Atoi(eachMap.Value)
-					happyMap[i].Value = strconv.Itoa(value + 1)
-					// Starts detecting new word
-					word = ""
-				}
+			//   in a fast O(1) way using the auxialiary hashMap
+			if _, ok := auxMap[word]; ok {
+				auxMap[word]++
+			} else {
+				// The key doesn't exists. Starts counter
+				auxMap[word] = 1
 			}
-			// If the detected word wasn't found on happyMap
-			if word != "" {
-				happyMap = append(happyMap, mapreduce.KeyValue{Key: word, Value: "1"})
-				// Starts detecting new word
-				word = ""
-			}
+			word = ""
 		}
 	}
+	// Just go through the auxialiary hashmap, adding results Maps to happyMap
+	for key, value := range auxMap {
+		var resultMap mapreduce.KeyValue
+		resultMap.Key = key
+		resultMap.Value = strconv.Itoa(value)
+		happyMap = append(happyMap, resultMap)
+	}
+	// HappyMap built in O(n) solution
 	return happyMap
 }
 
