@@ -99,57 +99,45 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	//
 	// 	Use the mapFileName function to generate the name of the files!
 
-	// Tentativa infeliz de particionar arquivos tomando cuidado para
-	// não cortar as palavras ao meio
 	var file, erro = os.Open(fileName)
-
+	defer file.Close()
 	if erro != nil {
-		file.Close()
 		return 0, err
 	}
-	defer file.Close()
-
-	numMapFiles = 0
 
 	fileInfo, _ := file.Stat()
+	// Remaining Size of the file to be split
 	var remainingSize = fileInfo.Size()
+	// Size of the split map in bytes
+	var mapSize int
 
-	for remainingSize > int64(chunkSize) {
-		fmt.Printf("> %d (%d)\n", remainingSize, chunkSize)
+	for remainingSize > 0 {
+		// When we still have at least two remaining mapFiles,
+		//  the first one has
+		if remainingSize > int64(chunkSize) {
+			var decCarac int
+			var carac = '0'
+			for unicode.IsLetter(carac) || unicode.IsNumber(carac) {
+				charBuff := make([]byte, 1)
+				Ncarac, _ := file.ReadAt(charBuff, remainingSize-int64(decCarac))
+				carac = rune(Ncarac)
+				decCarac++
+			}
+			mapSize = chunkSize - decCarac
+			remainingSize -= int64(mapSize)
 
-		var decCarac = 0
-		var carac = '0'
-		for unicode.IsLetter(carac) || unicode.IsNumber(carac) {
-			buf := make([]byte, 1)
-			var Ncarac, _ = file.ReadAt(buf, remainingSize-int64(decCarac))
-			carac = rune(Ncarac)
-			fmt.Printf("[%c]", carac)
-			decCarac++
+		} else { // This is the last generated mapFile
+			mapSize = int(remainingSize)
+			remainingSize = 0
 		}
-
-		partSize := chunkSize - decCarac
-		remainingSize -= int64(partSize)
-
-		fmt.Printf("> Part %d of size %d\n", numMapFiles, partSize)
-		partBuffer := make([]byte, partSize)
-
-		partFileName := mapFileName(numMapFiles)
-		fmt.Print(partFileName)
-		partFile, _ := os.Create(partFileName)
-		ioutil.WriteFile(partFileName, partBuffer, os.ModeAppend)
-		partFile.Close()
+		// Generating new mapFile with calculated mapSize
+		mapFileName := mapFileName(numMapFiles)
+		mapFile, _ := os.Create(mapFileName)
+		ioutil.WriteFile(mapFileName, make([]byte, mapSize), os.ModeAppend)
+		mapFile.Close()
 		numMapFiles++
 	}
 
-	fmt.Printf("> Part %d of size %d\n", numMapFiles, remainingSize)
-
-	partBuffer := make([]byte, remainingSize)
-	partFileName := mapFileName(numMapFiles)
-	partFile, _ := os.Create(partFileName)
-	ioutil.WriteFile(partFileName, partBuffer, os.ModeAppend)
-	partFile.Close()
-
-	fmt.Println("\n*************************")
 	return numMapFiles, nil
 }
 
