@@ -37,14 +37,15 @@ func deleteTestFile(t *testing.T, fileName string) {
 
 func TestSplitData(t *testing.T) {
 	var tests = []struct {
+		enabled     bool
 		description string
 		content     string
 		chunkSize   int
 	}{
-		{"text file empty", "", 32},
-		{"text files bigger than chunk size", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In eu elit vel libero auctor tempor nullam.", 32},
-		{"text file smaller than chunk size", "Lorem ipsum.", 32},
-		{"text file has exact chunk size", "Lorem ipsum dolor sit amet, con.", 32},
+		{true, "text file empty", "", 32},
+		{true, "text files bigger than chunk size", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In eu elit vel libero auctor tempor nullam.", 32},
+		{true, "text file smaller than chunk size", "Lorem ipsum.", 32},
+		{true, "text file has exact chunk size", "Lorem ipsum dolor sit amet, con.", 32},
 	}
 
 	var (
@@ -60,6 +61,10 @@ func TestSplitData(t *testing.T) {
 	_ = os.Mkdir(MAP_PATH, os.ModeDir)
 
 	for _, test := range tests {
+		if !test.enabled {
+			continue
+		}
+
 		t.Logf("Description: %v", test.description)
 
 		fileSize = createTestFile(t, fileName, test.content)
@@ -100,19 +105,20 @@ func TestSplitData(t *testing.T) {
 
 func TestMapFunc(t *testing.T) {
 	var tests = []struct {
+		enabled     bool
 		description string
 		input       []byte
 		output      map[string]int
 	}{
-		{"empty", []byte(""), make(map[string]int, 0)},
-		{"one word", []byte("foo"), map[string]int{"foo": 1}},
-		{"two words", []byte("foo foo"), map[string]int{"foo": 2}},
-		{"repeated word", []byte("foo refoo foo"), map[string]int{"foo": 2, "refoo": 1}},
-		{"invalid character", []byte("foo-bar"), map[string]int{"foo": 1, "bar": 1}},
-		{"newline character", []byte("foo\nbar"), map[string]int{"foo": 1, "bar": 1}},
-		{"multiple whitespaces", []byte("foo  bar"), map[string]int{"foo": 1, "bar": 1}},
-		{"special characters", []byte("foo, foo. foo? foo! \"foo\" 'foo' foo's"), map[string]int{"foo": 7, "s": 1}},
-		{"uppercase characters", []byte("Foo foo"), map[string]int{"foo": 2}},
+		{true, "empty", []byte(""), make(map[string]int, 0)},
+		{true, "one word", []byte("foo"), map[string]int{"foo": 1}},
+		{true, "two words", []byte("foo foo"), map[string]int{"foo": 2}},
+		{true, "repeated word", []byte("foo refoo foo"), map[string]int{"foo": 2, "refoo": 1}},
+		{true, "invalid character", []byte("foo-bar"), map[string]int{"foo": 1, "bar": 1}},
+		{true, "newline character", []byte("foo\nbar"), map[string]int{"foo": 1, "bar": 1}},
+		{true, "multiple whitespaces", []byte("foo  bar"), map[string]int{"foo": 1, "bar": 1}},
+		{true, "special characters", []byte("foo, foo. foo? foo! \"foo\" 'foo' foo's"), map[string]int{"foo": 7, "s": 1}},
+		{true, "uppercase characters", []byte("Foo foo"), map[string]int{"foo": 2}},
 	}
 
 	var (
@@ -121,6 +127,10 @@ func TestMapFunc(t *testing.T) {
 	)
 
 	for _, test := range tests {
+		if !test.enabled {
+			continue
+		}
+
 		t.Logf("Description: %v", test.description)
 
 		mapResult = mapFunc(test.input)
@@ -164,31 +174,37 @@ func TestMapFunc(t *testing.T) {
 
 func TestReduceFunc(t *testing.T) {
 	var tests = []struct {
+		enabled     bool
 		description string
 		input       []mapreduce.KeyValue
 		output      map[string]string
 	}{
 		{
+			true,
 			"no entry",
 			make([]mapreduce.KeyValue, 0),
 			make(map[string]string, 0),
 		},
 		{
+			true,
 			"one entry",
 			[]mapreduce.KeyValue{{"foo", "1"}},
 			map[string]string{"foo": "1"},
 		},
 		{
+			true,
 			"two entries with same keys",
 			[]mapreduce.KeyValue{{"foo", "1"}, {"foo", "2"}},
 			map[string]string{"foo": "3"},
 		},
 		{
+			true,
 			"two entries with different keys",
 			[]mapreduce.KeyValue{{"foo", "1"}, {"bar", "2"}},
 			map[string]string{"foo": "1", "bar": "2"},
 		},
 		{
+			true,
 			"non-numeric counter",
 			[]mapreduce.KeyValue{{"foo", "+"}, {"foo", "+"}},
 			map[string]string{"foo": "2"},
@@ -201,6 +217,10 @@ func TestReduceFunc(t *testing.T) {
 	)
 
 	for _, test := range tests {
+		if !test.enabled {
+			continue
+		}
+
 		t.Logf("Description: %v", test.description)
 
 		reduceResult = reduceFunc(test.input)

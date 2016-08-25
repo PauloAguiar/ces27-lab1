@@ -23,7 +23,7 @@ const (
 // the mapreduce framework through the one-way channel. It'll buffer data up to
 // MAP_BUFFER_SIZE (files smaller than chunkSize) and resume loading them
 // after they are read on the other side of the channle (in the mapreduce package)
-func fanInData(numFiles int) <-chan []byte {
+func fanInData(numFiles int) chan []byte {
 	var (
 		err    error
 		input  chan []byte
@@ -50,14 +50,12 @@ func fanInData(numFiles int) <-chan []byte {
 // fanOutData will run a goroutine that receive data on the one-way channel and will
 // proceed to store it in their final destination. The data will come out after the
 // reduce phase of the mapreduce model.
-func fanOutData() (chan<- []mapreduce.KeyValue, chan bool) {
+func fanOutData() (output chan []mapreduce.KeyValue, done chan bool) {
 	var (
 		err           error
 		file          *os.File
 		fileEncoder   *json.Encoder
 		reduceCounter int
-		output        chan []mapreduce.KeyValue
-		done          chan bool
 	)
 
 	output = make(chan []mapreduce.KeyValue, REDUCE_BUFFER_SIZE)
@@ -99,7 +97,7 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	//			}
 	// 		}
 	//
-	// 	Use the mapFileName function generate the name of the files!
+	// 	Use the mapFileName function to generate the name of the files!
 
 	// Tentativa infeliz de particionar arquivos tomando cuidado para
 	//  não cortar as palavras ao meio
