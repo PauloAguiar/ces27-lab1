@@ -1,5 +1,7 @@
 # CES-27 - LAB 1
 
+Instruções para configuração do ambiente: [Setup](SETUP.md)
+Para saber mais sobre a utilização do Git, acessar: [Git Passo-a-Passo](GIT.md)
 Para saber mais sobre a entrega do trabalho, acessar: [Entrega](ENTREGA.md)
 
 ## Informações Gerais:
