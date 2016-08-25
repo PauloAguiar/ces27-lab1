@@ -16,6 +16,11 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	//
 	//	Map should also make words lower cased:
 	//		strings.ToLower(string)
+	//
+	// IMPORTANT! The cast 'string(5)' will not return the character '5'.
+	// 		If you want to convert to and from string types, use the package 'strconv':
+	// 			strconv.Itoa(5) // = '5'
+	//			strconv.Atoi('5') // = 5
 
 	/////////////////////////
 	// YOUR CODE GOES HERE //

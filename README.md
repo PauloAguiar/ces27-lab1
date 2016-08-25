@@ -35,16 +35,16 @@ Além dessas, outras funções são normalmente utilizadas: Shuffle(ou Partition
 
 Nesse lab vamos implementar uma operação de contagem de palavras(word count). O nosso objetivo é conseguir processar grandes arquivos de textos e listar o número de vezes que cada palavra é utilizada. O pseudocódigo da operação (proposto no paper original) pode ser visto abaixo:
 
-```python
+```
 map(String key, String value):
-    # key: document name
-    # value: document contents
+    // key: document name
+    // value: document contents
     for each word w in value:
         EmitIntermediate(w, "1");
 
 reduce(String key, Iterator values):
-    # key: a word
-    # values: a list of counts
+    // key: a word
+    // values: a list of counts
     int result = 0;
     for each v in values:
         result += ParseInt(v);

@@ -99,7 +99,7 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	//			}
 	// 		}
 	//
-	// 	Use the mapFileName function generate the name of the files!
+	// 	Use the mapFileName function to generate the name of the files!
 
 	/////////////////////////
 	// YOUR CODE GOES HERE //
