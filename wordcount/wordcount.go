@@ -46,7 +46,8 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
-	return make([]mapreduce.KeyValue, 0)
+	result = make([]mapreduce.KeyValue, 0)
+	return result
 }
 
 // shuffleFunc will shuffle map job results into different job tasks. It should assert that
