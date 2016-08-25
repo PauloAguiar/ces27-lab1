@@ -9,7 +9,7 @@ import (
 // it should convert it into an array and parses it into an array of KeyValue that have
 // all the words in the input.
 func mapFunc(input []byte) (result []mapreduce.KeyValue) {
-	// 	Pay attention! We are getting an array of bytes.
+	// 	Pay attention! We are getting an array of bytes. Cast it to string.
 	//
 	// 	To decide if a character is a delimiter of a word, use the following check:
 	//		!unicode.IsLetter(c) && !unicode.IsNumber(c)
@@ -17,15 +17,16 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	//	Map should also make words lower cased:
 	//		strings.ToLower(string)
 	//
-	// IMPORTANT! The cast 'string(5)' will not return the character '5'.
+	// IMPORTANT! The cast 'string(5)' won't return the character '5'.
 	// 		If you want to convert to and from string types, use the package 'strconv':
-	// 			strconv.Itoa(5) // = '5'
-	//			strconv.Atoi('5') // = 5
+	// 			strconv.Itoa(5) // = "5"
+	//			strconv.Atoi("5") // = 5
 
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
-	return make([]mapreduce.KeyValue, 0)
+	result = make([]mapreduce.KeyValue, 0)
+	return result
 }
 
 // reduceFunc is called for each merged array of KeyValue resulted from all map jobs.
