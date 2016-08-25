@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"math"
 	"os"
 	"path/filepath"
+	"unicode"
 
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 )
@@ -100,80 +100,56 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	// 	Use the mapFileName function to generate the name of the files!
 
 	// Tentativa infeliz de particionar arquivos tomando cuidado para
-	//  não cortar as palavras ao meio
-	// var file *os.File
+	// não cortar as palavras ao meio
+	var file, erro = os.Open(fileName)
 
-	// if file, err := os.Open(fileName); err != nil {
-	// 	file.Close()
-	// 	return 0, nil
-	// }
-	// defer file.Close()
-
-	// numMapFiles = 0
-
-	// fileInfo, _ := file.Stat()
-	// var remainingSize = fileInfo.Size()
-
-	// for remainingSize > int64(chunkSize) {
-	// 	numMapFiles++
-
-	// 	var decCarac = 0
-	// 	var carac = '0'
-	// 	for unicode.IsLetter(carac) || unicode.IsNumber(carac) {
-	// 		var carac, _ = file.Seek(remainingSize-int64(decCarac), 0)
-	// 		b2 := make([]byte, 2)
-	// 		fmt.Printf("%d: %s\n", carac, string(b2))
-	// 		decCarac++
-	// 	}
-
-	// 	partSize := chunkSize - decCarac
-	// 	remainingSize -= int64(partSize)
-
-	// 	partBuffer := make([]byte, partSize)
-
-	// 	partFileName := mapFileName(numMapFiles)
-	// 	os.Create(partFileName)
-	// 	ioutil.WriteFile(partFileName, partBuffer, os.ModeAppend)
-	// }
-
-	// numMapFiles++
-
-	// partBuffer := make([]byte, remainingSize)
-	// partFileName := mapFileName(numMapFiles)
-	// os.Create(partFileName)
-	// ioutil.WriteFile(partFileName, partBuffer, os.ModeAppend)
-
-	// Safely openning/closing the input text file
-	file, err := os.Open(fileName)
-	if err != nil {
+	if erro != nil {
 		file.Close()
-		return 0, nil
+		return 0, err
 	}
 	defer file.Close()
 
-	// Estimating the number of divisions in mapFiles
+	numMapFiles = 0
+
 	fileInfo, _ := file.Stat()
-	fileSize := fileInfo.Size()
-	numMapFiles = int(math.Ceil(float64(fileSize) / float64(chunkSize)))
+	var remainingSize = fileInfo.Size()
 
-	// For each generated MapFile
-	for i := 0; i < numMapFiles; i++ {
+	for remainingSize > int64(chunkSize) {
+		fmt.Printf("> %d (%d)\n", remainingSize, chunkSize)
 
-		// Calculates the mapSize and then generates mapBuffer
-		mapSize := int(math.Min(float64(chunkSize), float64(int(fileSize)-int(i*chunkSize))))
-		mapBuffer := make([]byte, mapSize)
+		var decCarac = 0
+		var carac = '0'
+		for unicode.IsLetter(carac) || unicode.IsNumber(carac) {
+			buf := make([]byte, 1)
+			var Ncarac, _ = file.ReadAt(buf, remainingSize-int64(decCarac))
+			carac = rune(Ncarac)
+			fmt.Printf("[%c]", carac)
+			decCarac++
+		}
 
-		// Move file ahead
-		file.Read(mapBuffer)
+		partSize := chunkSize - decCarac
+		remainingSize -= int64(partSize)
 
-		// Generates new MapFile's name and content
-		mapName := mapFileName(i)
-		mapFile, _ := os.Create(mapName)
-		ioutil.WriteFile(mapName, mapBuffer, os.ModeAppend)
-		mapFile.Close()
+		fmt.Printf("> Part %d of size %d\n", numMapFiles, partSize)
+		partBuffer := make([]byte, partSize)
+
+		partFileName := mapFileName(numMapFiles)
+		fmt.Print(partFileName)
+		partFile, _ := os.Create(partFileName)
+		ioutil.WriteFile(partFileName, partBuffer, os.ModeAppend)
+		partFile.Close()
+		numMapFiles++
 	}
 
-	// Returning numMapFiles
+	fmt.Printf("> Part %d of size %d\n", numMapFiles, remainingSize)
+
+	partBuffer := make([]byte, remainingSize)
+	partFileName := mapFileName(numMapFiles)
+	partFile, _ := os.Create(partFileName)
+	ioutil.WriteFile(partFileName, partBuffer, os.ModeAppend)
+	partFile.Close()
+
+	fmt.Println("\n*************************")
 	return numMapFiles, nil
 }
 
