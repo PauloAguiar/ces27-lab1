@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io/ioutil"
 	"os"
 	"strconv"
 	"testing"
@@ -46,6 +47,7 @@ func TestSplitData(t *testing.T) {
 		{true, "text files bigger than chunk size", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In eu elit vel libero auctor tempor nullam.", 32},
 		{true, "text file smaller than chunk size", "Lorem ipsum.", 32},
 		{true, "text file has exact chunk size", "Lorem ipsum dolor sit amet, con.", 32},
+		{true, "text file has broken chunk size", "Lorem ipsum dolor sit amet, conviver.", 32},
 	}
 
 	var (
@@ -60,7 +62,7 @@ func TestSplitData(t *testing.T) {
 
 	_ = os.Mkdir(MAP_PATH, os.ModeDir)
 
-	for _, test := range tests {
+	for j, test := range tests {
 		if !test.enabled {
 			continue
 		}
@@ -92,6 +94,13 @@ func TestSplitData(t *testing.T) {
 
 			if tmpFileInfo.Size() > int64(test.chunkSize) {
 				t.Error("File '", tmpFileName, "' is larger than chunk size.")
+			}
+
+			// Special test to detect broken word on Split
+			if (j == 4 && i == 0) && tmpFileInfo.Size() == int64(test.chunkSize) {
+				t.Error("File '", tmpFileName, "' has a broken word.")
+				b, _ := ioutil.ReadFile(tmpFileName)
+				t.Error(string(b))
 			}
 
 			tmpFile.Close()
