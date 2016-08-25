@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"hash/fnv"
 )
@@ -21,10 +20,7 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
-	fmt.Printf("Input Length: %v\n", len(input))
-
-	result = make([]mapreduce.KeyValue, 0)
-	return result
+	return make([]mapreduce.KeyValue, 0)
 }
 
 // reduceFunc is called for each merged array of KeyValue resulted from all map jobs.
