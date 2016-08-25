@@ -51,6 +51,7 @@ reduce(String key, Iterator values):
     Emit(AsString(result));
 ```
 
+O código que implementaremos será um pouco diferente do apresentado acima, mas o resultado deve ser o mesmo.
 
 Inicialmente o diretório da nossa aplicação MapReduce possui a seguinte estrutura:
 
@@ -86,12 +87,9 @@ Contém o código que implementa as operações map e reduce.
 ### Atividade ###
 Essa atividade serve também como introdução à linguagem Go.
 
-Leia o código fornecido e entenda as estruturas básicas de leitura e gravação de dados que serão fornecidos e retornados pela operação de MapReduce nas funções *fanInData* e *fanOutData* no arquivo *data.go*
-
 Leia a função *RunSequential* no arquivo *mapreduce.go* e entenda a execução sequencial da operação de MapReduce. Atenção nas chamadas das funções *Map* e *Reduce*.
 
 As funções *Map* e *Reduce* (no arquivo *wordcount.go*) estão sem implementação. 
-
 
 **Implementando Map e Reduce**
 
