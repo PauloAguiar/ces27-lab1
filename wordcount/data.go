@@ -99,10 +99,22 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	//
 	// 	Use the mapFileName function to generate the name of the files!
 
+	// The idea is to read the text movind "chunck" bytes forward and then
+	//  go back character in character until finding a separator.
+	// Then, at this separator the file will be broken
+
+	// So, each MapFile would be like this:
+
+	// ##############(Separator)###(Chunk)######################
+	// ##############(mapFile 0)#################################
+	// ##############(mapFile 0)#################(Separator)##(Chunk)
+	// ##############(mapFile 0)#################(mapFile 1)##########
+	// ##############(mapFile 0)#################(mapFile 1)#####(mapFile 2)
+
 	var file, erro = os.Open(fileName)
 	defer file.Close()
 	if erro != nil {
-		return 0, err
+		return 0, erro
 	}
 
 	fileInfo, _ := file.Stat()
@@ -111,22 +123,25 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	// Size of the split map in bytes
 	var mapSize int
 
-	for remainingSize > 0 {
-		// When we still have at least two remaining mapFiles,
-		//  the first one has
+	for numMapFiles = 0; remainingSize > 0; numMapFiles++ {
 		if remainingSize > int64(chunkSize) {
-			var decCarac int
+			// When we still have at least two remaining mapFiles,
+			//  we have to break the first file
+			var recoil int
 			var carac = '0'
+			// Go back from chunckSize position untill the first separator
 			for unicode.IsLetter(carac) || unicode.IsNumber(carac) {
-				charBuff := make([]byte, 1)
-				Ncarac, _ := file.ReadAt(charBuff, remainingSize-int64(decCarac))
+				Ncarac, _ := file.ReadAt(make([]byte, 1), remainingSize-int64(recoil))
 				carac = rune(Ncarac)
-				decCarac++
+				recoil++
 			}
-			mapSize = chunkSize - decCarac
+			// Recalculate mapSize and updates remainingSize
+			mapSize = chunkSize - recoil
 			remainingSize -= int64(mapSize)
 
-		} else { // This is the last generated mapFile
+		} else {
+			// This is the last generated mapFile, with mapSize
+			//  equal the remainingSize of the file
 			mapSize = int(remainingSize)
 			remainingSize = 0
 		}
@@ -135,7 +150,6 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 		mapFile, _ := os.Create(mapFileName)
 		ioutil.WriteFile(mapFileName, make([]byte, mapSize), os.ModeAppend)
 		mapFile.Close()
-		numMapFiles++
 	}
 
 	return numMapFiles, nil
