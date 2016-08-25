@@ -156,3 +156,13 @@ $ git log -n 1
 
 
 Para enviar as suas alterações para o seu repositório remoto (Fork no GitHub), seguir instruções em: [Entrega](ENTREGA.md)
+
+## Atualizando Repositório Local
+
+Caso o repositório origin tenha sido atualizado, você pode fazer um pull das novas alterações sempre entrar em conflito com as alterações locais utilizando os seguintes comandos:
+
+```shell
+$ git fetch origin
+$ git rebase origin/master
+
+```
