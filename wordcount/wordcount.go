@@ -3,6 +3,9 @@ package main
 import (
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"hash/fnv"
+	"strings"
+	"unicode"
+	"strconv"
 )
 
 // mapFunc is called for each array of bytes read from the splitted files. For wordcount
@@ -25,7 +28,36 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
+
+	// FEITO EM LINUX
+
+	// Transformando byte em string
+	inputString := strings.ToLower(string(input))
+
+	// Determinando política de separação de palavras
+	splitPolicy := func(c rune) bool {
+		return !unicode.IsLetter(c) && !unicode.IsNumber(c)
+	}
+
+	// Mapeando quantidade de strings
+	wordsMap := make(map[string]int)
+
+	// Separando string em palavras
+	wordsArray := strings.FieldsFunc(inputString, splitPolicy)
+	
+	// Mapeando cada palavra do array
+	for _, word := range wordsArray {
+		wordsMap[word] = wordsMap[word]+1
+	}
+
+	// Alocando memória
 	result = make([]mapreduce.KeyValue, 0)
+
+	// Transportando os valores do mapa para KeyValue
+	for word,count := range wordsMap {
+		result = append(result,mapreduce.KeyValue{Key:word,Value:strconv.Itoa(count)})
+	}
+
 	return result
 }
 
@@ -46,7 +78,31 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
+
+	// FEITO EM LINUX
+
+	// Mapeando quantidade de strings
+	wordsMap := make(map[string]int)
+
+	// Mapeando cada palavra do inputnt
+	for _, keyValue := range input {
+		// Conversão de String para inteiro - retorna dois valores (count e err)
+		count,err := strconv.Atoi(keyValue.Value)
+		// Se houver erro, contador = 1 (vide caso de teste "non-numeric counter" em wordcount_test.go
+		if err != nil {
+			count = 1
+		}
+		wordsMap[keyValue.Key] = wordsMap[keyValue.Key] + count
+	}
+
+	// Alocando memória
 	result = make([]mapreduce.KeyValue, 0)
+
+	// Transportando os valores do mapa para KeyValue
+	for word,count := range wordsMap {
+		result = append(result,mapreduce.KeyValue{Key:word,Value:strconv.Itoa(count)})
+	}
+
 	return result
 }
 
