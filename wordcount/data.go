@@ -99,10 +99,39 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	//
 	// 	Use the mapFileName function generate the name of the files!
 
+	var buffer []byte
+	buffer, err = ioutil.ReadFile(fileName)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fileSize := len(buffer)
+
+	numMapFiles = fileSize / chunkSize
+	if fileSize%chunkSize > 0 {
+		numMapFiles++
+	}
+
+	indexInic := 0
+
+	for i:=0; i<numMapFiles; i++{
+		file, err := os.Create(mapFileName(i))
+		if err != nil {
+			log.Fatal(err)
+		}
+		if i == numMapFiles-1 && fileSize%chunkSize == 0{
+			file.Write(buffer[indexInic: ])
+		} else {
+			file.Write(buffer[indexInic: (indexInic+chunkSize) ])
+		}
+		indexInic += chunkSize
+		file.Close()
+	}
+
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
-	numMapFiles = 0
+
 	return numMapFiles, nil
 }
 
