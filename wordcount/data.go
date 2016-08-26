@@ -7,7 +7,10 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+    "io"
 	"path/filepath"
+    "unicode"
+    "unicode/utf8"
 )
 
 const (
@@ -113,8 +116,82 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
-	numMapFiles = 0
+	
+    var (
+        file *os.File
+        fileInfo os.FileInfo
+    )
+    
+    if file, err = os.Open(fileName); err != nil {
+        log.Fatal(err)
+        return 0, err
+    }
+    
+    defer closeFile(file)
+
+    if fileInfo, err = file.Stat(); err != nil {
+        log.Fatal(err)
+        return 0, err
+    }
+
+    fileSize := fileInfo.Size()
+    
+    buffer := make([]byte, fileSize)
+    if _, err = file.Read(buffer); err!=nil && err!=io.EOF {
+        log.Fatal(err)
+        return 0, err
+    }
+    
+    numMapFiles = 0
+    minOffset := 0
+    maxOffset := 0
+    lastNotWordCharOffset := 0
+    
+    // IMPORTANT: This code already supports non-ascii texts;
+    for currOffset, char:=range string(buffer[:]) {
+        isWordChar := unicode.IsLetter(char) || unicode.IsNumber(char) // Word chars must be letters or numeric digits;
+        charSize := utf8.RuneLen(char) // In bytes;
+        if currOffset-minOffset+charSize>chunkSize { // Current char cannot be included;
+            maxOffset = currOffset
+            if isWordChar {
+                maxOffset = lastNotWordCharOffset
+            }
+            if err = createFile(mapFileName(numMapFiles), buffer[minOffset:maxOffset]); err!=nil {
+                log.Fatal(err)
+                return numMapFiles, err
+            }
+            numMapFiles++
+            minOffset = maxOffset
+        } else if !isWordChar {
+            lastNotWordCharOffset = currOffset+charSize
+        }
+    }
+    // Check reamining bytes;
+    if maxOffset<len(buffer) { // Last remaining bytes;
+        if err = createFile(mapFileName(numMapFiles), buffer[maxOffset:]); err!=nil {
+            log.Fatal(err)
+            return numMapFiles, err
+        }
+        numMapFiles++
+    }
+    
 	return numMapFiles, nil
+}
+
+func closeFile(file *os.File) {
+    file.Close()
+}
+
+func createFile(fileName string, data []byte) (err error) {
+    var file *os.File
+    if file, err = os.Create(fileName); err != nil {
+		return err
+	}
+    defer closeFile(file)
+    if _, err = file.Write(data); err != nil {
+		return err
+	}
+    return nil
 }
 
 func mapFileName(id int) string {
