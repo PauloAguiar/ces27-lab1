@@ -3,6 +3,9 @@ package main
 import (
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"hash/fnv"
+    "strings"
+    "unicode"
+    "strconv"
 )
 
 // mapFunc is called for each array of bytes read from the splitted files. For wordcount
@@ -26,6 +29,18 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	// YOUR CODE GOES HERE //
 	/////////////////////////
 	result = make([]mapreduce.KeyValue, 0)
+    if input!=nil && len(input)>0 {
+        wordsMap := make(map[string]int)
+        splitter := func(char rune) bool {
+            return !unicode.IsLetter(char) && !unicode.IsNumber(char)
+        }
+        for _, word:=range strings.FieldsFunc(strings.ToLower(string(input[:])), splitter) {
+            wordsMap[word] = wordsMap[word] + 1
+        }
+        for word, count:=range wordsMap {
+            result = append(result, mapreduce.KeyValue{Key:word, Value:strconv.Itoa(count)})
+        }
+    }
 	return result
 }
 
@@ -47,6 +62,17 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 	// YOUR CODE GOES HERE //
 	/////////////////////////
 	result = make([]mapreduce.KeyValue, 0)
+    wordsMap := make(map[string]int)
+    for _, keyValue:=range input {
+        count, err := strconv.Atoi(keyValue.Value)
+        if(err!=nil) {
+            count = 1
+        }
+        wordsMap[keyValue.Key] = wordsMap[keyValue.Key] + count
+    }
+    for word, count:=range wordsMap {
+        result = append(result, mapreduce.KeyValue{Key:word, Value:strconv.Itoa(count)})
+    }
 	return result
 }
 
