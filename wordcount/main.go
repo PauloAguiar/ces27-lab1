@@ -2,9 +2,10 @@ package main
 
 import (
 	"flag"
-	"github.com/pauloaguiar/lab1-ces27/mapreduce"
 	"log"
 	"os"
+
+	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 )
 
 var (
