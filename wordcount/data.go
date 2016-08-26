@@ -8,6 +8,8 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"unicode"
+	"unicode/utf8"
 )
 
 const (
@@ -113,8 +115,91 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
+
+	// FEITO EM LINUX
+
+	// Abrindo o arquivo
+	fileToSplit, err := os.Open(fileName)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Levantando informações do arquivo
+	stateFile,_ := fileToSplit.Stat()
+
 	numMapFiles = 0
+
+	// Aloncando memória e lendo dados
+	dataFile := make([]byte, stateFile.Size())		
+	_, err = fileToSplit.Read(dataFile)
+
+	// Função que checa erros
+	check(err)
+
+	// Controlando posições
+	initialPos := 0
+	invalidOffSet := 0
+
+	// Iteração do conteúdo do arquivo
+	for byteOffset, runa := range string(dataFile) {
+		invalidChar := !unicode.IsLetter(runa) && !unicode.IsNumber(runa)
+		// Tamanho em bytes do caracter
+		sizeRuna := utf8.RuneLen(runa)
+
+		// Verifica posição final adequada
+		if byteOffset - initialPos + sizeRuna <= chunkSize {
+			if invalidChar {
+				invalidOffSet = byteOffset + sizeRuna
+			}
+
+		} else {
+			// Gera arquivo para bloco de dados de initialPos até initialPos + counterChunkSize (carater corrente - runa - é inválido) ou de initialPos até invalidOffSet (no caso de o caracter corrente ser válido)
+
+			if invalidChar {
+
+				makeFiles(dataFile, numMapFiles,initialPos,byteOffset)
+				initialPos = byteOffset
+
+			} else {
+
+				makeFiles(dataFile, numMapFiles,initialPos,invalidOffSet)
+				initialPos = invalidOffSet
+			}
+
+			numMapFiles += 1
+
+		}
+
+	}
+
+	fileByteSize := int(stateFile.Size())
+
+	// Resolvendo o fim do arquivo
+	if initialPos < fileByteSize {
+		makeFiles(dataFile, numMapFiles,initialPos,fileByteSize)
+		numMapFiles += 1
+	}
+
 	return numMapFiles, nil
+}
+
+// Montagem dos arquivos "splitados"
+func makeFiles(dataFile []byte, numMapFiles int, initialPos int, finalPos int) {
+	nameSmallFile := mapFileName(numMapFiles)
+	smallFile,err := os.Create(nameSmallFile)
+	check(err)
+	sizeFile,err := smallFile.Write(dataFile[initialPos:finalPos])
+	check(err)
+	fmt.Printf("It has written %d bytes: %q to %s.\n", sizeFile, dataFile[initialPos:finalPos], nameSmallFile)
+	defer smallFile.Close()
+}
+
+// Função para checagem de erros na manipulação de arquivos
+func check(e error) {
+    if e != nil {
+		log.Fatal(e)
+        panic(e)
+    }
 }
 
 func mapFileName(id int) string {
