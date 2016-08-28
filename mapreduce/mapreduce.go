@@ -20,7 +20,8 @@ func RunSequential(task *Task) {
 
 	log.Print("Running RunSequential...")
 
-	_ = os.Mkdir(REDUCE_PATH, os.ModeDir)
+	// os.ModeDir was setting wrong permissions in Linux
+	_ = os.Mkdir(REDUCE_PATH, os.ModePerm)
 
 	for v := range task.InputChan {
 		mapResult = task.Map(v)

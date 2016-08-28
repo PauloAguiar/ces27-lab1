@@ -3,6 +3,9 @@ package main
 import (
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"hash/fnv"
+	"regexp"
+	"strings"
+	"strconv"
 )
 
 // mapFunc is called for each array of bytes read from the splitted files. For wordcount
@@ -22,10 +25,16 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	// 			strconv.Itoa(5) // = "5"
 	//			strconv.Atoi("5") // = 5
 
-	/////////////////////////
-	// YOUR CODE GOES HERE //
-	/////////////////////////
-	result = make([]mapreduce.KeyValue, 0)
+	// Regex matching idea from
+	// http://codereview.stackexchange.com/questions/27813/split-and-word-count-in-go
+	// No need to cast the input to string
+	regexMatcher := regexp.MustCompile("\\w+") // Matches any word character [a-zA-Z0-9_]
+	wordList := regexMatcher.FindAll(input, -1)
+	result = make([]mapreduce.KeyValue, 0, len(wordList))
+	for i := range wordList {
+		result = append(result, mapreduce.KeyValue{Key: strings.ToLower(string(wordList[i])), Value: "+"})
+	}
+
 	return result
 }
 
@@ -46,10 +55,30 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 	// 	It's also possible to receive a non-numeric value (i.e. "+"). You can check the
 	// 	error returned by Atoi and if it's not 'nil', use 1 as the value.
 
-	/////////////////////////
-	// YOUR CODE GOES HERE //
-	/////////////////////////
-	result = make([]mapreduce.KeyValue, 0)
+	resultMap := make(map[string]int)
+
+	for i := 0; i < len(input); i++ {
+		valueToBeAdded := 0
+		// Accepts numbers or "+" as valid values
+		if currentValue, err := strconv.Atoi(input[i].Value); err == nil {
+			valueToBeAdded = currentValue
+		} else if strings.Compare(input[i].Value, "+") == 0 {
+			valueToBeAdded = 1
+		}
+		if valueToBeAdded > 0 {
+			if _, ok := resultMap[input[i].Key]; !ok {
+				resultMap[input[i].Key] = 0
+			}
+			resultMap[input[i].Key] += valueToBeAdded
+		}
+
+	}
+
+	result = make([]mapreduce.KeyValue, 0, len(resultMap))
+	for key, value := range resultMap {
+		result = append(result, mapreduce.KeyValue{Key: key, Value: strconv.Itoa(value)})
+	}
+
 	return result
 }
 
