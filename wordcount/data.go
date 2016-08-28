@@ -122,6 +122,7 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	var remainingSize = fileInfo.Size()
 	// Size of the split map in bytes
 	var mapSize int
+	var charBuffer = make([]byte, 1)
 
 	for numMapFiles = 0; remainingSize > 0; numMapFiles++ {
 		if remainingSize > int64(chunkSize) {
@@ -131,7 +132,7 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 			var carac = '0'
 			// Go back from chunckSize position untill the first separator
 			for unicode.IsLetter(carac) || unicode.IsNumber(carac) {
-				Ncarac, _ := file.ReadAt(make([]byte, 1), remainingSize-int64(recoil))
+				Ncarac, _ := file.ReadAt(charBuffer, remainingSize-int64(recoil))
 				carac = rune(Ncarac)
 				recoil++
 			}
