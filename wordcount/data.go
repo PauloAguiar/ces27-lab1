@@ -113,7 +113,22 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
+	//reading file
+	file, err := ioutil.ReadFile(fileName)
 	numMapFiles = 0
+	buffer := make([]byte, chunkSize)
+	for {
+		if bytesRead, err = file.Read(buffer); err != nil {
+			if err == io.EOF {
+				// EOF error
+				break
+			} else {
+				return 0, err
+			}
+		}
+		numMapFiles++
+	}
+		
 	return numMapFiles, nil
 }
 
