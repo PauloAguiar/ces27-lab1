@@ -121,7 +121,7 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	//cria o slice para leitura com o tamanho desejado
 	data := make([]byte, chunkSize)
 
-	for ;erro != io.EOF;  {//percorre todo o arquivo de entrada
+	for erro != io.EOF  {//percorre todo o arquivo de entrada
 			bytes_lidos, erro = arquivo_ent.Read(data)
 
 			if  erro != nil {	//verifica se tem algum erro de leitura
