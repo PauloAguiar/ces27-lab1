@@ -57,7 +57,8 @@ func TestSplitData(t *testing.T) {
 		tmpFileInfo      os.FileInfo
 	)
 
-	_ = os.Mkdir(MAP_PATH, os.ModeDir)
+	// os.ModeDir was setting wrong permissions in Linux
+	_ = os.Mkdir(MAP_PATH, os.ModePerm)
 
 	for _, test := range tests {
 		if !test.enabled {

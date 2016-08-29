@@ -8,6 +8,8 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"unicode/utf8"
+	"errors"
 )
 
 const (
@@ -110,11 +112,43 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	//	It's also important to notice that errors can be handled here or they can be passed down
 	// 	to be handled by the caller as the second parameter of the return.
 
-	/////////////////////////
-	// YOUR CODE GOES HERE //
-	/////////////////////////
+	var (
+		buffer []byte
+		currentFileSize int
+		file *os.File
+	)
+
+	// Should I be reading the whole input file here?
+	if buffer, err = ioutil.ReadFile(fileName); err != nil {
+		log.Fatal(err)
+	}
+	if chunkSize < 4 {
+		log.Fatal(errors.New("Invalid chunkSize argument. It should be 4 or greater"))
+	}
+
+	// Creating first file
 	numMapFiles = 0
-	return numMapFiles, nil
+	if file, err = os.Create(mapFileName(numMapFiles)); err != nil {
+		log.Fatal(err)
+	}
+
+	currentFileSize = 0
+	for len(buffer) > 0 {
+		r, runeSize := utf8.DecodeRune(buffer)
+		if currentFileSize + runeSize > chunkSize {
+			numMapFiles++
+			currentFileSize = 0
+			file.Close()
+			if file, err = os.Create(mapFileName(numMapFiles)); err != nil {
+				log.Fatal(err)
+			}
+		}
+		file.WriteString(fmt.Sprintf("%c", r))
+		currentFileSize += runeSize
+		buffer = buffer[runeSize:]
+	}
+
+	return numMapFiles + 1, nil
 }
 
 func mapFileName(id int) string {

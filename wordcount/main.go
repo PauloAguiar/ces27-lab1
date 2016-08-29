@@ -32,8 +32,9 @@ func main() {
 	log.Println("Reduce Jobs:", *reduceJobs)
 	log.Println("Chunk Size:", *chunkSize)
 
-	_ = os.Mkdir(MAP_PATH, os.ModeDir)
-	_ = os.Mkdir(RESULT_PATH, os.ModeDir)
+	// os.ModeDir was setting wrong permissions in Linux
+	_ = os.Mkdir(MAP_PATH, os.ModePerm)
+	_ = os.Mkdir(RESULT_PATH, os.ModePerm)
 
 	// Splits data into chunks with size up to chunkSize
 	if numFiles, err = splitData(*file, *chunkSize); err != nil {
