@@ -6,7 +6,6 @@ import (
 	"strings"
 	"unicode"
 	"strconv"
-	// "fmt"
 )
 
 // mapFunc is called for each array of bytes read from the splitted files. For wordcount
@@ -32,7 +31,7 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	// Codigo Pedro Nunes Baptista aluno Especial CE-288
 	var (
 		entrada = string(input)
-		palavra string 
+		palavra string
  		inicio, fim int
 		chave mapreduce.KeyValue
 	)
@@ -82,34 +81,52 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 	// YOUR CODE GOES HERE //
 	/////////////////////////
 	// Codigo Pedro Nunes Baptista aluno Especial CE-288
-	// essa funcao considera que os registros em input ja estao agrupados por
-	// strings .Key iguais
-	var(
-		chave_anterior mapreduce.KeyValue
-	)
+	var (
+		ja_tem bool
+		value, key string
+		qty1, qty2 int
+		err error
+		)
+  mapa_resultado := make(map[string]string)
 
-	result = make([]mapreduce.KeyValue, 0)
+	if len(input) != 0 { //entrada valida
+		for _, chave := range(input) { //percorre toda a entrada
 
-	if len(input) != 0 {
-		chave_anterior.Key = input[0].Key //preparacao para o primeiro registro
-		chave_anterior.Value = "0"
+				value, ja_tem = mapa_resultado[chave.Key] //testa a existencia da chave
 
-		for _, chave := range(input) {
-			if chave.Key == chave_anterior.Key {//mesma chave encontrada
+				if ja_tem { //chave repetida, soma o valor da chave com o do mapa
 
-				qty1, err := strconv.Atoi(chave.Value)
-				if err != nil { //caso Value nao seja um numero considera 1
-					qty1 = 1
-				}
-			 	qty2, _ := strconv.Atoi(chave_anterior.Value)
-				chave_anterior.Value = strconv.Itoa (qty1+qty2)
-			} else {//nova chave encontrada, podemos concluir a anterior
-				result = append(result, chave_anterior)
-				chave_anterior = chave
-			}
+          qty1, err = strconv.Atoi(chave.Value)
+					if err != nil { //caso nao seja um numero considera 1
+						qty1 = 1
+					}
+          qty2, err = strconv.Atoi(value)
+					if err != nil { //caso nao seja um numero considera 1
+						qty2 = 1
+					}
+
+          mapa_resultado[chave.Key] = strconv.Itoa(qty1+qty2)
+
+        } else { //nova chave
+
+        	mapa_resultado[chave.Key] = chave.Value
+
+        }
+      }
+
+		// converte o mapa para o slice de saida
+		result = make([]mapreduce.KeyValue, len(mapa_resultado))
+		i := 0
+		for key, value = range(mapa_resultado)	{
+			result[i].Key = key
+			result[i].Value = value
+			i++
 		}
-		result = append(result, chave_anterior) //concluindo a ultima chave lida da entrada
-	}
+
+  } else { //entrada vazia retornara uma saida vazia
+    	result = make([]mapreduce.KeyValue, 0)
+  }
+
 	return result
 }
 
