@@ -87,7 +87,7 @@ func fanOutData() (output chan []mapreduce.KeyValue, done chan bool) {
 
 // Reads input file and split it into files smaller than chunkSize.
 // CUTCUTCUTCUTCUT!
-func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
+func splitData(fileName string, chunkMaxSize int) (numMapFiles int, err error) {
 	// 	When you are reading a file and the end-of-file is found, an error is returned.
 	// 	To check for it use the following code:
 	// 		if bytesRead, err = file.Read(buffer); err != nil {
@@ -116,6 +116,8 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
+    
+    chunkSize := int64(chunkMaxSize)
     
     var (
         file *os.File
@@ -170,17 +172,17 @@ func readChunk(file *os.File, fileOffset int64, chunk []byte) (trimmedChunk []by
     }
 }
 
-func findChunkMaxOffset(chunk []byte, chunkSize int) (chunkMaxOffset int64) {
-    chunkLength := len(chunk)
+func findChunkMaxOffset(chunk []byte, chunkSize int64) (chunkMaxOffset int64) {
+    chunkLength := int64(len(chunk))
     if chunkLength<chunkSize { // Last chunk; see (*) above;
-        return int64(chunkLength)
+        return chunkLength
     }
-    offset := int64(chunkSize-1)
+    offset := chunkSize-1
     for { // Start searching...
         char, charStartOffset, charBytes := findPreviousChar(chunk, offset, false)
         if char==0 { // This should never happen;
             return 0
-        } else if charStartOffset+charBytes<=int64(chunkSize) { // Check against chunkSize;
+        } else if charStartOffset+charBytes<=chunkSize { // Check against chunkSize;
             if unicode.IsLetter(char) || unicode.IsNumber(char) { // Word char;
                 nextChar, _ := utf8.DecodeRune(chunk[charStartOffset+charBytes:])
                 if unicode.IsLetter(nextChar) || unicode.IsNumber(nextChar) { // If nextChar is also a word char, found word split;
@@ -215,11 +217,10 @@ func findPreviousChar(chunk []byte, offset int64, nonWordCharOnly bool) (char ru
     }
     if isRuneStart {
         char, bytes = utf8.DecodeRune(chunk[charStartOffset:])
-        charBytes = int64(bytes)
         if nonWordCharOnly && (unicode.IsLetter(char) || unicode.IsNumber(char)) {
             return findPreviousChar(chunk, charStartOffset-1, nonWordCharOnly) // Keep searching;
         } else {
-            return char, charStartOffset, charBytes   
+            return char, charStartOffset, int64(bytes)   
         }
     } else { // This should never happen;
         return 0, 0, 0
