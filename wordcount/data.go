@@ -116,66 +116,114 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
-	
+    
     var (
         file *os.File
-        fileInfo os.FileInfo
+        fileOffset int64
+        bytesRead int64
     )
     
-    if file, err = os.Open(fileName); err != nil {
-        log.Fatal(err)
+    if file, err = openFile(fileName); err!=nil {
         return 0, err
     }
-    
     defer closeFile(file)
-
-    if fileInfo, err = file.Stat(); err != nil {
-        log.Fatal(err)
-        return 0, err
-    }
-
-    fileSize := fileInfo.Size()
     
-    buffer := make([]byte, fileSize)
-    if _, err = file.Read(buffer); err!=nil && err!=io.EOF {
-        log.Fatal(err)
-        return 0, err
-    }
-    
+    fileOffset = 0
     numMapFiles = 0
-    minOffset := 0
-    maxOffset := 0
-    lastNotWordCharOffset := 0
-    
-    // IMPORTANT: This code already supports non-ascii texts;
-    for currOffset, char:=range string(buffer[:]) {
-        isWordChar := unicode.IsLetter(char) || unicode.IsNumber(char) // Word chars must be letters or numeric digits;
-        charSize := utf8.RuneLen(char) // In bytes;
-        if currOffset-minOffset+charSize>chunkSize { // Current char cannot be included;
-            maxOffset = currOffset
-            if isWordChar {
-                maxOffset = lastNotWordCharOffset
-            }
-            if err = createFile(mapFileName(numMapFiles), buffer[minOffset:maxOffset]); err!=nil {
-                log.Fatal(err)
-                return numMapFiles, err
-            }
-            numMapFiles++
-            minOffset = maxOffset
-        } else if !isWordChar {
-            lastNotWordCharOffset = currOffset+charSize
-        }
-    }
-    // Check reamining bytes;
-    if maxOffset<len(buffer) { // Last remaining bytes;
-        if err = createFile(mapFileName(numMapFiles), buffer[maxOffset:]); err!=nil {
-            log.Fatal(err)
+    chunk := make([]byte, chunkSize+utf8.UTFMax-1) // Adds 3 extra bytes to properly handle trailing multi-bytes runes in the case they occur;
+    chunk, bytesRead = readChunk(file, fileOffset, chunk)
+    for bytesRead>0 { // Reads the file in chunks;
+        maxOffset := findChunkMaxOffset(chunk, chunkSize)
+        if err = createFile(mapFileName(numMapFiles), chunk[:maxOffset]); err!=nil {
             return numMapFiles, err
         }
+        fileOffset += maxOffset
         numMapFiles++
+        chunk, bytesRead = readChunk(file, fileOffset, chunk)
     }
     
-	return numMapFiles, nil
+    return numMapFiles, nil
+}
+
+func openFile(fileName string) (file *os.File, err error) {
+    if file, err = os.Open(fileName); err != nil {
+        log.Fatal(err)
+        return nil, err
+    }
+    if _, err = file.Stat(); err != nil {
+        log.Fatal(err)
+        return nil, err
+    }
+    return file, nil
+}
+
+func readChunk(file *os.File, fileOffset int64, chunk []byte) (trimmedChunk []byte, bytesRead int64) {
+    bytes, err := file.ReadAt(chunk, fileOffset)
+    if err!=nil && err!=io.EOF {
+        log.Fatal(err)
+        return chunk, 0
+    }
+    if bytes<len(chunk) {
+        return chunk[:bytes], int64(bytes) // (*) "Trimming" chunk to bytesRead; this also implies this is a last chunk;
+    } else {
+        return chunk, int64(bytes)
+    }
+}
+
+func findChunkMaxOffset(chunk []byte, chunkSize int) (chunkMaxOffset int64) {
+    chunkLength := len(chunk)
+    if chunkLength<chunkSize { // Last chunk; see (*) above;
+        return int64(chunkLength)
+    }
+    offset := int64(chunkSize-1)
+    for { // Start searching...
+        char, charStartOffset, charBytes := findPreviousChar(chunk, offset, false)
+        if char==0 { // This should never happen;
+            return 0
+        } else if charStartOffset+charBytes<=int64(chunkSize) { // Check against chunkSize;
+            if unicode.IsLetter(char) || unicode.IsNumber(char) { // Word char;
+                nextChar, _ := utf8.DecodeRune(chunk[charStartOffset+charBytes:])
+                if unicode.IsLetter(nextChar) || unicode.IsNumber(nextChar) { // If nextChar is also a word char, found word split;
+                    offset = charStartOffset-1 // Update offset;
+                    prevNonWordChar, prevNonWordCharStartOffset, prevNonWordCharBytes := findPreviousChar(chunk, offset, true) // Search for the previous non-word char;
+                    if prevNonWordChar==0 { // This should never happen;
+                        return 0
+                    } else {
+                        return prevNonWordCharStartOffset + prevNonWordCharBytes;   
+                    }
+                } else { // Last char of a word;
+                    return charStartOffset + charBytes;
+                }
+            } else { // Non-word char;
+                return charStartOffset + charBytes;
+            }   
+        } else { // Char outside chunk size;
+            offset = charStartOffset-1 // Update offset;
+        }
+    }
+}
+
+func findPreviousChar(chunk []byte, offset int64, nonWordCharOnly bool) (char rune, charStartOffset int64, charBytes int64) {
+    var bytes int
+    if offset<0 { // This should never happen;
+        return 0, 0, 0
+    }
+    charStartOffset = offset
+    isRuneStart := false
+    for isRuneStart = utf8.RuneStart(chunk[charStartOffset]); !isRuneStart && charStartOffset>0; {
+        charStartOffset--
+    }
+    if isRuneStart {
+        char, bytes = utf8.DecodeRune(chunk[charStartOffset:])
+        charBytes = int64(bytes)
+        if nonWordCharOnly && (unicode.IsLetter(char) || unicode.IsNumber(char)) {
+            return findPreviousChar(chunk, charStartOffset-1, nonWordCharOnly) // Keep searching;
+        } else {
+            return char, charStartOffset, charBytes   
+        }
+    } else { // This should never happen;
+        return 0, 0, 0
+    }
 }
 
 func closeFile(file *os.File) {
@@ -185,10 +233,12 @@ func closeFile(file *os.File) {
 func createFile(fileName string, data []byte) (err error) {
     var file *os.File
     if file, err = os.Create(fileName); err != nil {
+        log.Fatal(err)
 		return err
 	}
     defer closeFile(file)
     if _, err = file.Write(data); err != nil {
+        log.Fatal(err)
 		return err
 	}
     return nil
