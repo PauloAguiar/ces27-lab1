@@ -2,8 +2,12 @@ package main
 
 import (
 	"fmt"
+	"strings"
+	"unicode"
+	"strconv"
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"hash/fnv"
+	//"reflect"
 )
 
 // mapFunc is called for each array of bytes read from the splitted files. For wordcount
@@ -27,9 +31,40 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	// YOUR CODE GOES HERE //
 	/////////////////////////
 
-	fmt.Printf("Input length: %v\n", len(input))
+	str_in := string(input[:])
+	str_in = str_in + " "
+	str_in = strings.ToLower(str_in)
 
-	result = make([]mapreduce.KeyValue, 0)
+	myMap := make(map[string]int)
+	word := ""
+
+	for _, c := range str_in {
+		if  unicode.IsLetter(c) || unicode.IsNumber(c) {
+			word += string(c)
+		} else {
+			if word != "" {
+				if _, ok := myMap[word]; !ok{
+					myMap[word] = 1
+				} else {
+					myMap[word]++
+				}
+			}
+			word = ""
+		}
+	}
+	
+	for key, value := range myMap {
+		//fmt.Printf("key: %v\n", key)
+		result = append(result, mapreduce.KeyValue{key, strconv.Itoa(value)})
+	}
+
+	fmt.Printf("result length: %v\n", len(result))
+
+	// for i:=0; i<len(result); i++{
+	// 	fmt.Printf("key: %v, value: %v\n", result[i].Key, result[i].Value)
+	// }
+
+	//result = make([]mapreduce.KeyValue, 0)
 	return result
 }
 
@@ -53,7 +88,30 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
-	result = make([]mapreduce.KeyValue, 0)
+
+	myMap := make(map[string]int)
+
+	for i := 0; i < len(input); i++ {
+		value, err := strconv.Atoi(input[i].Value)
+		if err != nil {
+			value = 1
+		}
+		if _, ok := myMap[input[i].Key]; !ok {
+			myMap[input[i].Key] = value
+		} else {
+			myMap[input[i].Key] += value
+		}
+	}
+
+	for key, value := range myMap {
+		result = append(result, mapreduce.KeyValue{key, strconv.Itoa(value)})
+	}
+
+	// for i:=0; i<len(result); i++{
+	// 	fmt.Printf("key: %v, value: %v\n", result[i].Key, result[i].Value)
+	// }
+
+	//result = make([]mapreduce.KeyValue, 0)
 	return result
 }
 
