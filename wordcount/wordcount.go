@@ -23,44 +23,45 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
-	mapaux := make(map[string]int)
-	var mapfinal []mapreduce.KeyValue
-	first :=0
-	texto := string(input)
-	ehpalavra := false
+	mapaux := make(map[string]int) //used to count the number of instances of each word
+	var mapFunc_result []mapreduce.KeyValue
+	first :=0 //the position of the first char of the word being read
+	text := string(input)
+	isAWord := false //the loop just below reads each char of the text sequentially. the flag isAWord indicates if the last read character was an alphanumeric, meaning that we were, up to that point, reading a word
 	i := 0
 	for ;i<len(input);i++{
-		c:=rune(texto[i])
-		if !unicode.IsLetter(c) && !unicode.IsNumber(c) && ehpalavra{
-			palavra := strings.ToLower(string(texto[first:i]))
-			aValue, exists := mapaux[palavra]
+		c:=rune(text[i])
+		if !unicode.IsLetter(c) && !unicode.IsNumber(c) && isAWord{ //identification of a char that is not the first char of a word
+			word := strings.ToLower(string(text[first:i]))
+			aValue, exists := mapaux[word]
 			if exists {
-				mapaux[palavra] = aValue + 1	
+				mapaux[word] = aValue + 1	
 			} else{
-				mapaux[palavra] = 1
+				mapaux[word] = 1
 			}
 			first=i+1
-			ehpalavra=false
-		} else if (!ehpalavra && (unicode.IsLetter(c) || unicode.IsNumber(c) ) ) {
+			isAWord=false
+		} else if (!isAWord && (unicode.IsLetter(c) || unicode.IsNumber(c) ) ) { //identification of the first char of a word
 			first = i
-			ehpalavra = true
+			isAWord = true
 		}
 	}
 
-	if ehpalavra {
-		palavra := string(texto[first:i])
-		aValue, exists := mapaux[palavra]
+	//if the last char read was an alphanumeric char, then the last word should be taken into account
+	if isAWord {
+		word := string(text[first:i])
+		aValue, exists := mapaux[word]
 		if exists {
-			mapaux[palavra] = aValue + 1	
+			mapaux[word] = aValue + 1	
 		} else{
-			mapaux[palavra] = 1
+			mapaux[word] = 1
 		}
 	}
 
 	for k := range mapaux{
-		mapfinal = append(mapfinal, mapreduce.KeyValue{k, strconv.Itoa(mapaux[k]) }) //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+		mapFunc_result = append(mapFunc_result, mapreduce.KeyValue{k, strconv.Itoa(mapaux[k]) })
 	}
-	return mapfinal
+	return mapFunc_result
 }
 
 // reduceFunc is called for each merged array of KeyValue resulted from all map jobs.
