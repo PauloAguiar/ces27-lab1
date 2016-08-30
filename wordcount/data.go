@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"bytes"
 )
 
 const (
@@ -82,6 +83,12 @@ func fanOutData() (output chan []mapreduce.KeyValue, done chan bool) {
 	return output, done
 }
 
+func check(e error) {
+    if e != nil {
+        panic(e)
+    }
+}
+
 // Reads input file and split it into files smaller than chunkSize.
 // CUTCUTCUTCUTCUT!
 func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
@@ -113,7 +120,42 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
-	numMapFiles = 0
+	numMapFiles = -1
+
+	file, err := ioutil.ReadFile(fileName)
+	check(err)
+	var word bytes.Buffer
+	var toFile bytes.Buffer
+    //fmt.Printf("chunkSize: %v\n", chunkSize)
+
+    for _, b := range file {
+    	if (toFile.Len() + word.Len()) >= chunkSize {
+    		numMapFiles++
+    		err = ioutil.WriteFile(mapFileName(numMapFiles), toFile.Bytes(), 0644)
+    		toFile.Truncate(0)
+    	}
+
+    	if  b != 32 {
+			err = word.WriteByte(b)
+		} else {
+			if word.Len() != 0 {
+				_, err = toFile.Write(word.Bytes())
+				err = toFile.WriteByte(b)
+				word.Truncate(0)
+			} else {
+				err = toFile.WriteByte(b)
+			}
+		}
+    }
+    fmt.Printf("last word: %v, size: %v\n", word.String(), word.Len())
+    fmt.Printf("last toFile: %v, size: %v\n", toFile.String(), toFile.Len())
+    if word.Len() > 0 {
+    	_, err = toFile.Write(word.Bytes())
+    	numMapFiles++
+		err = ioutil.WriteFile(mapFileName(numMapFiles), toFile.Bytes(), 0644)
+		toFile.Truncate(0)
+    }
+
 	return numMapFiles, nil
 }
 
