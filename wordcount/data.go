@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"io/ioutil"
+    "io"
 	"log"
 	"os"
 	"path/filepath"
+    "unicode"
 )
 
 const (
@@ -112,8 +114,57 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 
 	/////////////////////////
 	// YOUR CODE GOES HERE //
-	/////////////////////////
-	numMapFiles = 0
+	///////////////////////
+
+	var (
+		file          *os.File
+        buffer        = make([]byte, chunkSize)
+       bytesRead     int
+      //  stringRead    string
+        tmpFileName   string
+        tmpFile       *os.File
+	)
+
+    if file, err = os.Open(fileName); err != nil {
+        fmt.Println("Could not open file", fileName)
+        panic(err)
+    }
+
+    for chunkCounter := 0;; chunkCounter++ {
+        padding := int64(0)
+		if bytesRead, err = file.Read(buffer); err != nil {
+			if err == io.EOF {
+				break
+			} else {
+				panic(err)
+			}
+		}
+
+		for i := len(buffer) - 1; bytesRead == chunkSize && i >= 0; i-- {
+            c := rune(buffer[i])
+			if unicode.IsLetter(c) || unicode.IsNumber(c) {
+				padding++
+			} else {
+				break
+			}
+		}
+        file.Seek(-padding, 1)
+
+        //write to file
+        tmpFileName = mapFileName(chunkCounter)
+        if tmpFile, err = os.Create(tmpFileName); err != nil {
+            fmt.Println("Could not create file", tmpFileName)
+            panic(err)
+        }
+
+        if _, err = tmpFile.Write(buffer[0:int64(bytesRead) -padding - 1]); err != nil {
+            fmt.Println("Could not write to file", tmpFileName)
+           panic(err)
+        }
+        tmpFile.Close()
+        numMapFiles++
+	}
+
 	return numMapFiles, nil
 }
 
