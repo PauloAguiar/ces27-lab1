@@ -8,6 +8,8 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"unicode"
+	"math"
 )
 
 const (
@@ -99,40 +101,48 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	//
 	// 	Use the mapFileName function generate the name of the files!
 
-	var buffer []byte
+	var buffer []byte //stores the whole file
 	buffer, err = ioutil.ReadFile(fileName)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	fileSize := len(buffer)
+	filenumb := 0 //index of the new file to be created
+	initial_char_position:=0 //position of the first char to be written in a smaller file
+	final_char_position:=0 //position of the last char to be written in a smaller file
 
-	numMapFiles = fileSize / chunkSize
-	if fileSize%chunkSize > 0 {
-		numMapFiles++
-	}
-
-	indexInic := 0
-
-	for i:=0; i<numMapFiles; i++{
-		file, err := os.Create(mapFileName(i))
+	//runs along the buffer of the whole file and chunks it into smaller files wihout breakign words at the end
+	for initial_char_position<fileSize {
+		file, err := os.Create(mapFileName(filenumb))
 		if err != nil {
 			log.Fatal(err)
 		}
-		if i == numMapFiles-1 && fileSize%chunkSize == 0{
-			file.Write(buffer[indexInic: ])
+		
+		final_char_position = initial_char_position+chunkSize
+		if final_char_position < fileSize{
+			//if the proposed final char position is still inside the buffer, the loop below assures that no word will be broken
+			for unicode.IsNumber(rune(buffer[final_char_position])) || unicode.IsLetter(rune(buffer[final_char_position])){
+				final_char_position--
+			}
+			final_char_position = int(math.Min(float64(final_char_position), float64(initial_char_position+chunkSize-1)))
 		} else {
-			file.Write(buffer[indexInic: (indexInic+chunkSize) ])
+			//if the remaining chars of the buffer arent enough to fill a file, the final char position must be the final position of the buffer
+			final_char_position = fileSize-1
 		}
-		indexInic += chunkSize
+
+		file.Write(buffer[initial_char_position:final_char_position])
+
 		file.Close()
+		initial_char_position=final_char_position+1
+		filenumb++
 	}
 
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
 
-	return numMapFiles, nil
+	return filenumb, err
 }
 
 func mapFileName(id int) string {
