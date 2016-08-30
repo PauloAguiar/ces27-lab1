@@ -8,6 +8,8 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"io"
+	//"bufio"
 )
 
 const (
@@ -113,20 +115,35 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
-	//reading file
-	file, err := ioutil.ReadFile(fileName)
 	numMapFiles = 0
-	buffer := make([]byte, chunkSize)
+	file, err := os.Open(fileName)
+	
+	buffer := make( []byte, chunkSize)
+	remain := 0
+	var bytesRead int  
+
 	for {
-		if bytesRead, err = file.Read(buffer); err != nil {
+		if bytesRead, err = file.Read(buffer[0:(chunkSize - remain)]); err != nil {
 			if err == io.EOF {
 				// EOF error
 				break
 			} else {
 				return 0, err
 			}
+		} else {
+			
+			f, err := os.Create(mapFileName(numMapFiles))
+    		//check(err)
+    		defer f.Close()
+    		fmt.Println(bytesRead)
+    		fmt.Println(err)
+    		//concat what's left of the past read with the slice of the current read minus any words cut in half
+    		n, err := f.Write(buffer)
+    		//check(err)
+			fmt.Println(n)
+			numMapFiles++
 		}
-		numMapFiles++
+
 	}
 		
 	return numMapFiles, nil

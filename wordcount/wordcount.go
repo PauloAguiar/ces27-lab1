@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"hash/fnv"
-	"utf8"	
+	//"utf8"	
 )
 
 // mapFunc is called for each array of bytes read from the splitted files. For wordcount
@@ -26,19 +26,24 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
-	n := bytes.Index(byteArray, []byte{0})
+	result = make([]mapreduce.KeyValue, 0) //allocate and initializes an empty map
+	//cast array of bytes to string
+
+	//split string into words and parse it into an array of KeyValues
+	/*n := bytes.Index(byteArray, []byte{0})
 	strings := string(input[:n])
 	strings.ToLower(string)
 	for c = 0 , c < utf8.RuneCountInString(s) {
 		if !unicode.IsLetter(c) && !unicode.IsNumber(c) {
 			 	
 		} 	
-
-
-	}
+		else
+			word
+			result[mapreduce.KeyValue{word, 1}]++
+	}*/
 	
 	
-	result = make([]mapreduce.KeyValue, 0)
+	
 	return result
 }
 
@@ -62,7 +67,12 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
-	result = make([]mapreduce.KeyValue, 0)
+	//iterar sobre o input usando range
+	/*for	input range 
+		//contar o número de ocorrências 
+		strconv.Atoi(element.value) + 
+
+	result = make([]mapreduce.KeyValue, 0)*/
 	return result
 }
 
