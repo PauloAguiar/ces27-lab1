@@ -96,7 +96,13 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 			//m[element.Key] = strconv.Atoi(element.Value)
 			m[element.Key] = element.Value 
 		} else {
-			//m[element.Key] = strconv.Itoa(strconv.Atoi(m[element.Key]) + strconv.Atoi(element.Value))
+			 val1 , err1 := strconv.Atoi(m[element.Key])
+			 val2 , err2 := strconv.Atoi(element.Value)
+			 if err1 == nil && err2 == nil {
+				m[element.Key] = strconv.Itoa(val1 + val2)
+			} else {
+				m[element.Key] = "1"
+			}
 		}
 	}
 
