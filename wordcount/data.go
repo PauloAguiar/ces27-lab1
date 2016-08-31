@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"io/ioutil"
+	"bufio"
 	"log"
 	"os"
 	"path/filepath"
@@ -110,10 +111,56 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	//	It's also important to notice that errors can be handled here or they can be passed down
 	// 	to be handled by the caller as the second parameter of the return.
 
-	/////////////////////////
-	// YOUR CODE GOES HERE //
-	/////////////////////////
+    file, err := os.Open(fileName) // Open file.
+    if err != nil {
+       file.Close()
+	   return 0, err
+    }
+
 	numMapFiles = 0
+
+	buffer := bufio.NewScanner(file)
+	buffer.Split(bufio.ScanWords)
+
+	var fileText string = ""
+	var space string = " "
+
+	for buffer.Scan() {
+		word := buffer.Text()
+
+		if len(fileText) > 0 {
+			if len(fileText + space) <= chunkSize {
+				fileText = fileText + space
+			}
+		}
+		if len(fileText + word) > chunkSize {
+			if len(fileText) == 0 {
+				fileText = word
+				writeFileName := mapFileName(numMapFiles)
+				numMapFiles += 1
+
+				ioutil.WriteFile(writeFileName, []byte(fileText), os.ModePerm)
+				fileText = ""
+			} else {
+				writeFileName := mapFileName(numMapFiles)
+				numMapFiles += 1
+
+				ioutil.WriteFile(writeFileName, []byte(fileText), os.ModePerm)
+				fileText = word	
+			}
+		} else {
+			fileText = fileText + word
+		}
+	}
+
+	if fileText != "" {
+		writeFileName := mapFileName(numMapFiles)
+		numMapFiles += 1
+
+		ioutil.WriteFile(writeFileName, []byte(fileText), os.ModePerm)
+	}
+
+	file.Close()
 	return numMapFiles, nil
 }
 
