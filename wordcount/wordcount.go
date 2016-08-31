@@ -3,6 +3,10 @@ package main
 import (
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"hash/fnv"
+	"fmt"
+	"unicode"
+	"strings"
+	"strconv"
 )
 
 // mapFunc is called for each array of bytes read from the splitted files. For wordcount
@@ -22,11 +26,29 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	// 			strconv.Itoa(5) // = "5"
 	//			strconv.Atoi("5") // = 5
 
-	/////////////////////////
-	// YOUR CODE GOES HERE //
-	/////////////////////////
+	removeDelimiters := func(r rune) bool {
+		if (!unicode.IsLetter(r) && !unicode.IsNumber(r)) {
+			return true
+		} else {
+			return false
+		}
+	}
+
 	result = make([]mapreduce.KeyValue, 0)
+	input_s := string(input)
+	
+	words := strings.FieldsFunc(input_s, removeDelimiters)
+	
+	for _, word := range words {
+		word = strings.ToLower(word)
+		result = append(result,mapreduce.KeyValue{word, strconv.Itoa(1)})
+	}
+
 	return result
+}
+
+func printSlice(s []byte) {
+	fmt.Printf("len=%d cap=%d %v\n", len(s), cap(s), s)
 }
 
 // reduceFunc is called for each merged array of KeyValue resulted from all map jobs.
@@ -46,10 +68,30 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 	// 	It's also possible to receive a non-numeric value (i.e. "+"). You can check the
 	// 	error returned by Atoi and if it's not 'nil', use 1 as the value.
 
-	/////////////////////////
-	// YOUR CODE GOES HERE //
-	/////////////////////////
+	combined := make(map[string]int,0)
+	for _, kv := range input {
+		if _, ok:= combined[kv.Key]; !ok {
+			value, err := strconv.Atoi(kv.Value)
+			if err != nil {
+				combined[kv.Key] = 1
+			} else {
+				combined[kv.Key] = value
+			}
+		}else{
+			value, err := strconv.Atoi(kv.Value)
+			if err != nil {
+				combined[kv.Key] += 1
+			} else {
+				combined[kv.Key] += value
+			}
+		}
+	}
+
 	result = make([]mapreduce.KeyValue, 0)
+	for k,v := range combined{
+		result = append(result,mapreduce.KeyValue{k,strconv.Itoa(v)})
+	}
+	
 	return result
 }
 

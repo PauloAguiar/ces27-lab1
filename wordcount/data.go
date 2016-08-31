@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"math"
 	"path/filepath"
 )
 
@@ -110,11 +111,40 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	//	It's also important to notice that errors can be handled here or they can be passed down
 	// 	to be handled by the caller as the second parameter of the return.
 
-	/////////////////////////
-	// YOUR CODE GOES HERE //
-	/////////////////////////
-	numMapFiles = 0
-	return numMapFiles, nil
+	file, err := os.Open(fileName)
+	if(err!=nil){
+		fmt.Println(err)
+	}
+	defer file.Close()
+
+	//Determining how many map files
+	fileInfo, _ := file.Stat()
+	var fileSize int64 = fileInfo.Size()
+	numMapFiles = int(math.Ceil(float64(fileSize)/float64(chunkSize)))
+	fmt.Printf("Splitting to %d pieces.\n", numMapFiles)
+
+	//Actually splitting data
+	for i := int(0); i < numMapFiles; i++ {
+		partSize := int(math.Min(float64(chunkSize),float64(fileSize - int64(i*chunkSize))))
+		partBuffer := make ([]byte, partSize)
+
+		//Reading the file and setting it to the buffer
+		file.Read(partBuffer)
+
+		//Creating file
+		newFile := mapFileName(i)
+		_,err = os.Create(newFile)
+		if(err != nil){
+			fmt.Println(err)
+		}
+
+		//Writing to file
+		ioutil.WriteFile(newFile, partBuffer, os.ModeAppend)
+
+		fmt.Println("Split to: ", newFile)
+	}
+
+	return numMapFiles, err
 }
 
 func mapFileName(id int) string {
