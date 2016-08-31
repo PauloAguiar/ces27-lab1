@@ -33,7 +33,7 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	/*
 	 * Casting byte array to string
 	 */
-	s := string(input[:])
+	s := string(input)
 
 	/*
 	 * Clearing text using regular expression
