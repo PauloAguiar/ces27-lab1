@@ -8,6 +8,8 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"unicode"
+	"io"
 )
 
 const (
@@ -114,7 +116,68 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	// YOUR CODE GOES HERE //
 	/////////////////////////
 	numMapFiles = 0
-	return numMapFiles, nil
+	var buffer string = "" //text to write in a file
+	var numExtraBuffer int = 0 //quantity of bytes at the end of a file that can be part of a broken word.
+	var extraBuffer string = ""
+	
+	//Open the input fle to read it
+	file, err := os.Open(fileName) // For read access.
+	if err != nil {
+		log.Fatal(err)
+	}
+	
+	var emptyFile bool = false
+	//The total of bytes to be read is always a chunkSize
+	//for bytesRead, err := file.Read(chunkSize-numExtraBuffer); err != nil; {
+	for !emptyFile {
+		
+		data := make([]byte, chunkSize-numExtraBuffer) //create array of bytes to consume the next chunck
+			
+		_, err := file.Read(data);		
+		
+		if err == io.EOF {
+			emptyFile = true
+		} else {
+			//panic(err) //se usar isso sempre gera erro em todos os testes
+		}
+		
+		if (!emptyFile) { 
+			
+			buffer = extraBuffer + string(data)
+			
+			numExtraBuffer = 0
+			var lenBuffer int = len(buffer) 
+					
+			//Eliminating final characters that can be part of a broken word
+			for c := buffer[lenBuffer-1]; unicode.IsLetter(rune(c)) || unicode.IsNumber(rune(c)); {
+				numExtraBuffer++
+				c = buffer[lenBuffer - numExtraBuffer - 1];
+			}
+			extraBuffer = buffer[lenBuffer-numExtraBuffer : lenBuffer]
+			buffer = buffer[0 : lenBuffer-numExtraBuffer]
+			
+			//Creating a file with context as buffer
+			var fileName string = mapFileName(numMapFiles) //name of the new file
+			//fmt.Printf("ju: %v \n", fileName)
+			var fileMinor *os.File  //reference to the new file
+			if fileMinor, err = os.Create(fileName); err != nil {
+				panic(err)
+				//Error("Couldn't create file '", fileName, "'. Error: ", err)
+			}
+			if _, err := fileMinor.WriteString(buffer); err != nil {
+				panic(err)
+				//Error("Couldn't write to file. Error: ", err)				
+			}
+			fileMinor.Close()
+			numMapFiles++ //in the tests, the name of files initiates in zero. So we increment later
+			
+		}		
+	}
+	
+	file.Close()
+	
+	//return numMapFiles, nil //standard return for tests
+	return numMapFiles, err
 }
 
 func mapFileName(id int) string {
