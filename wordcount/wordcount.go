@@ -3,7 +3,9 @@ package main
 import (
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"hash/fnv"
-	//"strings"
+	"strings"
+	"unicode"
+	"strconv"
 	//"utf8"	
 )
 
@@ -29,13 +31,22 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	/////////////////////////
 
 	result = make([]mapreduce.KeyValue, 0) 
-	/*
+	
 	n := len(input)
 	//n := bytes.Index(input, []byte{0})
 	s := string(input[:n])
 	strings.ToLower(s)
-	slice := make([]int , 0)
-	for c := 0 ; c < utf8.RuneCountInString(s) ;  c++ {
+	//slice := make([]int , 0)
+	sepAux := 0
+	for i := 1 ; i < len(s) ; i++ {
+		if( !unicode.IsLetter(rune(s[i])) && !unicode.IsNumber(rune(s[i]))){
+			result = append(result , mapreduce.KeyValue{Key:s[sepAux:(i - sepAux - 1)] , Value:strconv.Itoa(1)})
+			sepAux = i 
+		}
+	}
+	
+
+	/*for c := 0 ; c < utf8.RuneCountInString(s) ;  c++ {
 		if !unicode.IsLetter(s[c]) && !unicode.IsNumber(s[c]) {
 			//array with positions of separators
 			n := len(slice)
@@ -52,10 +63,8 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	}
 	for i = 0 ; i < len(slice) - 1 ; i ++ {
 		result[mapreduce.KeyValue{s[(slice[i] + 1):(slice[i+1] - slice[i])], 1}]
-	}
+	}*/
 
-	*/
-	
 	return result
 }
 
