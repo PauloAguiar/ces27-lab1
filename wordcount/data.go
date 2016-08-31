@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -108,13 +109,42 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	//  For more information visit: https://blog.golang.org/strings
 	//
 	//	It's also important to notice that errors can be handled here or they can be passed down
-	// 	to be handled by the caller as the second parameter of the return.
+	// 	to be handled by the caller as the secfanInDataond parameter of the return.
 
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
 	numMapFiles = 0
-	return numMapFiles, nil
+    inputFile, err := os.Open(fileName)
+    if err != nil {
+        panic(err)
+    }
+    defer func() {
+        if err := inputFile.Close(); err != nil {
+            panic(err)
+        }
+    }()
+    buffer := make([]byte, chunkSize)
+    for numBytes, err := inputFile.Read(buffer); numBytes != 0 ; numBytes, err = inputFile.Read(buffer){
+        if err != nil && err != io.EOF {
+            panic(err)
+        }
+        outputName := mapFileName(numMapFiles)
+	    outputFile, err := os.Create(outputName)
+	    if err != nil {
+	        panic(err)
+	    }
+	    defer func() {
+	        if err := outputFile.Close(); err != nil {
+	            panic(err)
+	        }
+	    }()
+        if _, err := outputFile.Write(buffer[:numBytes]); err != nil {
+            panic(err)
+        }
+        numMapFiles++
+    }
+	return numMapFiles, err
 }
 
 func mapFileName(id int) string {
