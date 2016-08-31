@@ -3,6 +3,9 @@ package main
 import (
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"hash/fnv"
+	"strings"
+	"strconv"
+	"unicode"
 )
 
 // mapFunc is called for each array of bytes read from the splitted files. For wordcount
@@ -26,6 +29,31 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	// YOUR CODE GOES HERE //
 	/////////////////////////
 	result = make([]mapreduce.KeyValue, 0)
+	lastCheck := false
+	var Key string
+	Value := "1"
+
+	tempText := string(input[:])
+	tempText = strings.ToLower(tempText)
+
+	for _, c := range tempText {
+		if !unicode.IsLetter(c) && !unicode.IsNumber(c){
+			if lastCheck {
+				KeyValue := mapreduce.KeyValue{Key, Value}
+				Key = ""
+				result = append(result, KeyValue)
+				lastCheck = false 
+			}
+		}else{
+			Key += string(c)
+			lastCheck = true
+		}
+	}
+
+	if lastCheck{
+		KeyValue := mapreduce.KeyValue{Key, Value}
+		result = append(result, KeyValue)
+	}
 	return result
 }
 
@@ -50,6 +78,28 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 	// YOUR CODE GOES HERE //
 	/////////////////////////
 	result = make([]mapreduce.KeyValue, 0)
+
+	tempMap := make(map[string]string)
+
+	for i:=0 ; i < len(input) ; i++{
+
+		prevValue, _ := strconv.Atoi(tempMap[input[i].Key]) //Se não tiver no mapa, retorna 0
+
+		aux, err := strconv.Atoi(input[i].Value)
+		if err!=nil{
+			aux = 1 //Caso tenha "+" ou algum caractere estranho
+		}
+
+		aux += prevValue
+
+		tempMap[input[i].Key] = strconv.Itoa(aux)
+	}
+
+	for key, value:= range tempMap{
+		KeyValue := mapreduce.KeyValue{key, value}
+		result = append(result, KeyValue)
+	}
+
 	return result
 }
 

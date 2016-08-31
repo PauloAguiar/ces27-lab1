@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -114,6 +115,45 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	// YOUR CODE GOES HERE //
 	/////////////////////////
 	numMapFiles = 0
+
+	input, e := os.Open(fileName)
+
+	if(e != nil){
+		panic(e)
+	}
+
+	defer func() {
+		e := input.Close()
+		if e != nil{
+			panic(e)
+		}
+	}()
+
+	buffer := make([]byte, chunkSize)
+
+	for bytesRead, e := input.Read(buffer) ; bytesRead != 0 ; bytesRead, e = input.Read(buffer) {
+		if e != nil && e != io.EOF{
+			panic(e)
+		}
+
+		output, e := os.Create(mapFileName(numMapFiles))
+		if e != nil{
+			panic(e)
+		}
+		defer func() {
+			e := output.Close()
+			if e != nil{
+				panic(e)
+			}
+		}()
+
+		_, e = output.Write(buffer[:bytesRead])
+		if e != nil{
+			panic(e)
+		}
+
+		numMapFiles++
+	}
 	return numMapFiles, nil
 }
 
