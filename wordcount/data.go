@@ -177,54 +177,44 @@ func findChunkMaxOffset(chunk []byte, chunkSize int64) (chunkMaxOffset int64) {
     if chunkLength<chunkSize { // Last chunk; see (*) above;
         return chunkLength
     }
-    offset := chunkSize-1
-    for { // Start searching...
-        char, charStartOffset, charBytes := findPreviousChar(chunk, offset, false)
-        if char==0 { // This should never happen;
+    for chunkOffset:=chunkSize-1; chunkOffset>0; {
+        char, charStartOffset, charBytes := findPreviousChar(chunk, chunkOffset, false)
+        if char==0 { // Error: could not find previous char!
             return 0
-        } else if charStartOffset+charBytes<=chunkSize { // Check against chunkSize;
-            if unicode.IsLetter(char) || unicode.IsNumber(char) { // Word char;
+        } else if charStartOffset+charBytes<=chunkSize { // Current char respects chunkSize constraint!
+            if isWordChar(char) {
                 nextChar, _ := utf8.DecodeRune(chunk[charStartOffset+charBytes:])
-                if unicode.IsLetter(nextChar) || unicode.IsNumber(nextChar) { // If nextChar is also a word char, found word split;
-                    offset = charStartOffset-1 // Update offset;
-                    prevNonWordChar, prevNonWordCharStartOffset, prevNonWordCharBytes := findPreviousChar(chunk, offset, true) // Search for the previous non-word char;
-                    if prevNonWordChar==0 { // This should never happen;
+                if(isWordChar(nextChar)) { // Warning: word split!
+                    char, charStartOffset, charBytes = findPreviousChar(chunk, charStartOffset-1, true) // Search for the previous "non-word" char;
+                    if char==0 { // Error: could not find previous char!
                         return 0
-                    } else {
-                        return prevNonWordCharStartOffset + prevNonWordCharBytes;   
                     }
-                } else { // Last char of a word;
-                    return charStartOffset + charBytes;
                 }
-            } else { // Non-word char;
-                return charStartOffset + charBytes;
-            }   
-        } else { // Char outside chunk size;
-            offset = charStartOffset-1 // Update offset;
+            }
+            return charStartOffset + charBytes; // Found max offset!
+        } else { // Keep searching;
+            chunkOffset = charStartOffset-1 // Current char doesn't respect chunkSize constraint: update chunkOffset for next iteration;      
         }
     }
+    return 0
 }
 
-func findPreviousChar(chunk []byte, offset int64, nonWordCharOnly bool) (char rune, charStartOffset int64, charBytes int64) {
+func findPreviousChar(chunk []byte, chunkOffset int64, searchForNonWordCharsOnly bool) (char rune, charStartOffset int64, charBytes int64) {
     var bytes int
-    if offset<0 { // This should never happen;
-        return 0, 0, 0
-    }
-    charStartOffset = offset
-    isRuneStart := false
-    for isRuneStart = utf8.RuneStart(chunk[charStartOffset]); !isRuneStart && charStartOffset>0; {
-        charStartOffset--
-    }
-    if isRuneStart {
-        char, bytes = utf8.DecodeRune(chunk[charStartOffset:])
-        if nonWordCharOnly && (unicode.IsLetter(char) || unicode.IsNumber(char)) {
-            return findPreviousChar(chunk, charStartOffset-1, nonWordCharOnly) // Keep searching;
-        } else {
-            return char, charStartOffset, int64(bytes)   
+    for charStartOffset = chunkOffset; charStartOffset>0; charStartOffset-- {
+        if utf8.RuneStart(chunk[charStartOffset]) {
+            char, bytes = utf8.DecodeRune(chunk[charStartOffset:])
+            keepSearching := isWordChar(char) && searchForNonWordCharsOnly
+            if !keepSearching { // Found char;
+                return char, charStartOffset, int64(bytes)
+            }
         }
-    } else { // This should never happen;
-        return 0, 0, 0
     }
+    return 0, 0, 0
+}
+
+func isWordChar(char rune) (isWordChar bool) {
+    return unicode.IsLetter(char) || unicode.IsNumber(char)
 }
 
 func closeFile(file *os.File) {
