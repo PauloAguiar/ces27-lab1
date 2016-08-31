@@ -3,6 +3,10 @@ package main
 import (
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"hash/fnv"
+	"unicode/utf8"
+	"unicode"
+	"strings"
+	"strconv"
 )
 
 // mapFunc is called for each array of bytes read from the splitted files. For wordcount
@@ -22,10 +26,33 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	// 			strconv.Itoa(5) // = "5"
 	//			strconv.Atoi("5") // = 5
 
-	/////////////////////////
-	// YOUR CODE GOES HERE //
-	/////////////////////////
 	result = make([]mapreduce.KeyValue, 0)
+	word := ""
+
+	for i := 0; i < len(input); {
+		r, size := utf8.DecodeRune(input[i:])
+		i += size
+
+		if !unicode.IsLetter(r) && !unicode.IsNumber(r) {
+			if word != "" {
+				var pair mapreduce.KeyValue
+				word = strings.ToLower(word)
+				pair.Key = word
+				pair.Value = "1"
+				result = append(result, pair)
+			}
+			word = ""
+		} else {
+			word = word + string(r)
+			if i == len(input) {
+				var pair mapreduce.KeyValue
+				word = strings.ToLower(word)
+				pair.Key = word
+				pair.Value = "1"
+				result = append(result, pair)
+			}
+		}
+    }
 	return result
 }
 
@@ -46,10 +73,28 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 	// 	It's also possible to receive a non-numeric value (i.e. "+"). You can check the
 	// 	error returned by Atoi and if it's not 'nil', use 1 as the value.
 
-	/////////////////////////
-	// YOUR CODE GOES HERE //
-	/////////////////////////
+	rMap := make(map[string]int)
+
+	for _, v := range input {
+		acum := 0
+		if _, ok := rMap[v.Key]; ok {
+			acum, _ = rMap[v.Key]
+		}
+		val, err := strconv.Atoi(v.Value) 
+		if(err != nil) {
+			rMap[v.Key] = acum+1
+		} else {
+			rMap[v.Key] = acum+val
+		}
+	}
+
 	result = make([]mapreduce.KeyValue, 0)
+	for key, value := range rMap {
+		var pair mapreduce.KeyValue
+		pair.Key = key
+		pair.Value = strconv.Itoa(value)
+		result = append(result, pair)
+	}
 	return result
 }
 
