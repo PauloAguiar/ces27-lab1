@@ -73,7 +73,32 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
-	return make([]mapreduce.KeyValue, 0)
+	var mapAux map[string]int = make(map[string]int)
+	
+	for _,item := range input { 
+		_, ok := mapAux[item.Key]
+		v,err := strconv.Atoi(item.Value)	//v is the generated number, err indicate error in the conversion	
+		if !ok { //If the key (word) is not in the map, create it
+			if err == nil { 
+				mapAux[item.Key]=v //when the Value string represents a number
+			} else {
+				mapAux[item.Key]=1 //when the Value string is any symbol (so we cannot convert to number)
+			}
+		} else{ //Increment the quantity of the word
+			if err == nil { 
+				mapAux[item.Key]=mapAux[item.Key] + v //increment by the other value
+			} else {
+				mapAux[item.Key]=mapAux[item.Key] + 1 //only increment by 1
+			}			
+		}
+	}
+	for k, v := range mapAux {
+		result = append(result, mapreduce.KeyValue{k,strconv.Itoa(v)})
+	}
+	fmt.Printf("%v", mapAux)
+	
+	return result
+	//return make([]mapreduce.KeyValue, 0)
 }
 
 // shuffleFunc will shuffle map job results into different job tasks. It should assert that
