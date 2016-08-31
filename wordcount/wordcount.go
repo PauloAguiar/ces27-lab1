@@ -25,11 +25,6 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	// 		If you want to convert to and from string types, use the package 'strconv':
 	// 			strconv.Itoa(5) // = "5"
 	//			strconv.Atoi("5") // = 5
-
-	/////////////////////////
-	// YOUR CODE GOES HERE //
-	/////////////////////////
-
 	result = make([]mapreduce.KeyValue, 0) 
 	
 	n := len(input)
@@ -94,11 +89,43 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 	//	strconv.Atoi(element.value) 
 
 	result = make([]mapreduce.KeyValue, 0)
-	/*if _, ok := myMap[myKey]; !ok {
-		// Don't have the key
-	} else {
+	m :=  make(map[string]string)
+	for _ , element := range input {
+		if _, ok := m[element.Key]; !ok {
+			// Don't have the key
+			//m[element.Key] = strconv.Atoi(element.Value)
+			m[element.Key] = element.Value 
+		} else {
+			//m[element.Key] = strconv.Itoa(strconv.Atoi(m[element.Key]) + strconv.Atoi(element.Value))
+		}
+	}
 
+	for key, value  := range m {
+		//aux := mapreduce.KeyValue{Key:k , Value: strconv.Itoa(m[k])}
+		aux := mapreduce.KeyValue{Key:key , Value: value}
+		result = append ( result , aux )
+	}
+
+	/*
+	for index , element := range input {
+		if _, ok := result[element]; !ok {
+			// Don't have the key
+			result = append ( result , element ) 
+		} else {
+			//adiciona 1 ao value do elemento já está em result
+			for indexR , elementR := range result {
+				if(Compare(element.Key , elementR.Key)){
+					result[indexR].Value = strconv.Itoa(strconv.Atoi(elementR.Value) + 1)  
+				}
+			}
+		}	
 	}*/
+	
+	
+	//for _, value := range array {
+    //	sum += value
+	//}
+
 	return result
 }
 
