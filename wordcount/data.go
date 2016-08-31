@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"io"
+	"unicode"
 	//"bufio"
 )
 
@@ -112,9 +113,6 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	//	It's also important to notice that errors can be handled here or they can be passed down
 	// 	to be handled by the caller as the second parameter of the return.
 
-	/////////////////////////
-	// YOUR CODE GOES HERE //
-	/////////////////////////
 	numMapFiles = 0
 	file, err := os.Open(fileName)
 	
@@ -144,9 +142,9 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
     		fmt.Println(err)
     		//number of characters between last separator and end end of chunk
     		remainSize = 0
-    		//for  !( !unicode.IsLetter(buffer[bytesRead - remainSize - 1] ) && !unicode.IsNumber(buffer[bytesRead - remainSize - 1] )){
-    		//	remainSize++
-    		//}
+    		for  !( !unicode.IsLetter(rune(buffer[bytesRead - remainSize - 1]) ) && !unicode.IsNumber(rune(buffer[bytesRead - remainSize - 1] ))) {
+    			remainSize++
+    		}
     		//stores content to be written on the next file 
 			tmp := make([]byte, chunkSize - remainSize)
 

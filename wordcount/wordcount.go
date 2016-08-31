@@ -3,8 +3,8 @@ package main
 import (
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"hash/fnv"
-	"strings"
-	"utf8"	
+	//"strings"
+	//"utf8"	
 )
 
 // mapFunc is called for each array of bytes read from the splitted files. For wordcount
@@ -29,7 +29,7 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	/////////////////////////
 
 	result = make([]mapreduce.KeyValue, 0) 
-
+	/*
 	n := len(input)
 	//n := bytes.Index(input, []byte{0})
 	s := string(input[:n])
@@ -54,7 +54,7 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 		result[mapreduce.KeyValue{s[(slice[i] + 1):(slice[i+1] - slice[i])], 1}]
 	}
 
-	
+	*/
 	
 	return result
 }
@@ -80,16 +80,16 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 	// YOUR CODE GOES HERE //
 	/////////////////////////
 	//iterar sobre o input usando range
-	for	input range 
+	//for	input range 
 		//contar o número de ocorrências 
-		strconv.Atoi(element.value) 
+	//	strconv.Atoi(element.value) 
 
 	result = make([]mapreduce.KeyValue, 0)
-	if _, ok := myMap[myKey]; !ok {
+	/*if _, ok := myMap[myKey]; !ok {
 		// Don't have the key
 	} else {
 
-	}
+	}*/
 	return result
 }
 
