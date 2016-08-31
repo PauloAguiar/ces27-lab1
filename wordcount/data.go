@@ -8,6 +8,9 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"bufio"
+	"unicode"
+	"unicode/utf8"
 )
 
 const (
@@ -83,37 +86,74 @@ func fanOutData() (output chan []mapreduce.KeyValue, done chan bool) {
 }
 
 // Reads input file and split it into files smaller than chunkSize.
-// CUTCUTCUTCUTCUT!
 func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
-	// 	When you are reading a file and the end-of-file is found, an error is returned.
-	// 	To check for it use the following code:
-	// 		if bytesRead, err = file.Read(buffer); err != nil {
-	// 			if err == io.EOF {
-	// 				// EOF error
-	// 			} else {
-	//				return 0, err
-	//			}
-	// 		}
-	//
-	// 	Use the mapFileName function to generate the name of the files!
-	//
-	//	Go strings are encoded using UTF-8.
-	// 	This means that a character can't be handled as a byte. There's no char type.
-	// 	The type that hold's a character is called a 'rune' and it can have 1-4 bytes (UTF-8).
-	//	Because of that, it's not possible to index access characters in a string the way it's done in C.
-	//		str[3] will return the 3rd byte, not the 3rd rune in str, and this byte may not even be a valid
-	//		rune by itself.
-	//		Rune handling should be done using the package 'strings' (https://golang.org/pkg/strings/)
-	//
-	//  For more information visit: https://blog.golang.org/strings
-	//
-	//	It's also important to notice that errors can be handled here or they can be passed down
-	// 	to be handled by the caller as the second parameter of the return.
 
-	/////////////////////////
-	// YOUR CODE GOES HERE //
-	/////////////////////////
-	numMapFiles = 0
+	/*
+	 * Loading file
+	 */
+	f, _ := os.Open(fileName)
+
+	s := bufio.NewScanner(f)
+	
+    s.Split(bufio.ScanRunes)
+
+	/*
+	 * Setting variables
+	 */
+	chk   := 0  // counts the chunksize for a file
+	data  := "" // stores all string of a file
+	word  := "" // stores a fragment of a file
+	
+	/*
+	 * - for each rune do
+	 *   - count rune size
+	 *   - if a fragment does not reach the chunksize then 
+	 *     - word should grows
+	 *     - if current rune is a white space then
+	 *       - data should grows
+	 *       - word should reborn from nothing
+	 *   - else
+	 *     -  append dataset and reseat vars
+	 */
+	for s.Scan() {
+		
+		r := []rune(s.Text())[0]
+
+		chk += utf8.RuneLen(r)
+		
+		if chk < chunkSize {
+			
+			word += string(r)
+			
+			if !unicode.IsLetter(r) && !unicode.IsNumber(r) {
+				data += word
+				word = ""
+			}
+			
+		} else {
+			
+			ioutil.WriteFile(mapFileName(numMapFiles), []byte(data), 0644)
+			
+			numMapFiles++
+			
+			data = word + string(r)
+			
+			chk =  len(data)
+			
+			if !unicode.IsLetter(r) && !unicode.IsNumber(r) {
+				word = ""
+			}
+		}
+	}
+	
+	/*
+	 * Generating last file
+	 */
+	ioutil.WriteFile(mapFileName(numMapFiles), []byte(data), 0644)
+	
+	/*
+	 * Returning 
+	 */
 	return numMapFiles, nil
 }
 
