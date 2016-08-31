@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"unicode/utf8"
 	"errors"
+	"unicode"
+	"bytes"
 )
 
 const (
@@ -115,6 +117,8 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	var (
 		buffer []byte
 		currentFileSize int
+		currentWord bytes.Buffer // Uses buffer to avoid creating new objects
+		                         // on append operation
 		file *os.File
 	)
 
@@ -135,17 +139,27 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	currentFileSize = 0
 	for len(buffer) > 0 {
 		r, runeSize := utf8.DecodeRune(buffer)
-		if currentFileSize + runeSize > chunkSize {
-			numMapFiles++
-			currentFileSize = 0
-			file.Close()
-			if file, err = os.Create(mapFileName(numMapFiles)); err != nil {
-				log.Fatal(err)
-			}
-		}
-		file.WriteString(fmt.Sprintf("%c", r))
-		currentFileSize += runeSize
 		buffer = buffer[runeSize:]
+		// Gets the whole word before checking if it fits on the current file
+		if unicode.IsLetter(r) || unicode.IsNumber(r) {
+			currentWord.WriteRune(r)
+		} else if currentWord.Len() > 0 {
+			currentWord.WriteString(" ") // Use space as output separator
+			if currentWord.Len() > chunkSize {
+				log.Fatal(errors.New("Word greater than chunk size found"))
+			}
+			if currentFileSize + currentWord.Len() > chunkSize {
+				numMapFiles++
+				currentFileSize = 0
+				file.Close()
+				if file, err = os.Create(mapFileName(numMapFiles)); err != nil {
+					log.Fatal(err)
+				}
+			}
+			file.Write(currentWord.Bytes())
+			currentFileSize += currentWord.Len()
+			currentWord.Reset()
+		}
 	}
 
 	return numMapFiles + 1, nil
