@@ -6,6 +6,7 @@ import (
 	"strings"
 	"unicode"
 	"strconv"
+	"bytes"
 	//"utf8"	
 )
 
@@ -27,20 +28,20 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	//			strconv.Atoi("5") // = 5
 	result = make([]mapreduce.KeyValue, 0) 
 	
-	n := len(input)
-	//n := bytes.Index(input, []byte{0})
-	s := string(input[:n])
-	strings.ToLower(s)
-	//slice := make([]int , 0)
+	n := bytes.Index(input, []byte{0}) //input size
+	s := string(input[0:n]) //converts array of bytes into an array
+	strings.ToLower(s) //make words lower cased
+
 	sepAux := 0
-	for i := 1 ; i < len(s) ; i++ {
-		if( !unicode.IsLetter(rune(s[i])) && !unicode.IsNumber(rune(s[i]))){
-			result = append(result , mapreduce.KeyValue{Key:s[sepAux:(i - sepAux - 1)] , Value:strconv.Itoa(1)})
-			sepAux = i 
+	for sep := 1 ; sep < len(s)  ; sep++ {
+		//case a separator is found, new word must be added to the result
+		if( !unicode.IsLetter(rune(s[sep])) && !unicode.IsNumber(rune(s[sep]))){
+			result = append(result , mapreduce.KeyValue{Key:s[(sepAux + 1):(sep - sepAux - 1)] , Value:strconv.Itoa(1)})
+			sepAux = sep 
 		}
 	}
 	
-
+	return result
 	/*for c := 0 ; c < utf8.RuneCountInString(s) ;  c++ {
 		if !unicode.IsLetter(s[c]) && !unicode.IsNumber(s[c]) {
 			//array with positions of separators
@@ -59,8 +60,6 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	for i = 0 ; i < len(slice) - 1 ; i ++ {
 		result[mapreduce.KeyValue{s[(slice[i] + 1):(slice[i+1] - slice[i])], 1}]
 	}*/
-
-	return result
 }
 
 // reduceFunc is called for each merged array of KeyValue resulted from all map jobs.
@@ -111,7 +110,7 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 		aux := mapreduce.KeyValue{Key:key , Value: value}
 		result = append ( result , aux )
 	}
-
+	return result
 	/*
 	for index , element := range input {
 		if _, ok := result[element]; !ok {
@@ -131,8 +130,7 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 	//for _, value := range array {
     //	sum += value
 	//}
-
-	return result
+	
 }
 
 // shuffleFunc will shuffle map job results into different job tasks. It should assert that

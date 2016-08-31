@@ -115,18 +115,19 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 
 	numMapFiles = 0
 	file, err := os.Open(fileName)
-	
-	buffer := make( []byte, chunkSize)
+	defer file.Close()
+
+	buffer := make( []byte, chunkSize) //buffer to read file
 	remainSize := 0
 	remainSizeAux := 0
 	var bytesRead int  
 	bufferAux := make([]byte, chunkSize)
-
+	bytesReadAux := 0
 
 	for {
-		bufferAux = buffer
+		
 		remainSizeAux = remainSize
-		if bytesRead, err = file.Read(buffer[0:(chunkSize - remainSize)]); err != nil {
+		if bytesRead, err = file.Read(buffer[0:(chunkSize - remainSizeAux)]); err != nil {
 			if err == io.EOF {
 				// EOF error
 				break
@@ -134,6 +135,7 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 				return 0, err
 			}
 		} else {
+			bufferAux = buffer[(bytesReadAux - remainSizeAux):remainSizeAux]
 			//creates file in witch chunk will be written
 			f, err := os.Create(mapFileName(numMapFiles))
     		//check(err)
@@ -146,12 +148,12 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
     			remainSize++
     		}
     		//stores content to be written on the next file 
-			tmp := make([]byte, chunkSize - remainSize)
+			tmp := make([]byte, (chunkSize - remainSize))
 
     		if remainSizeAux != 0 {
-    			copy( tmp , bufferAux[chunkSize - remainSizeAux:chunkSize])	
+    			copy( tmp , bufferAux)	
     		} 
-    		copy ( tmp[remainSizeAux:(chunkSize - remainSize)] , buffer[0:(bytesRead - remainSize)] )
+    		copy ( tmp[remainSizeAux:(bytesRead - remainSize)] , buffer[0:(bytesRead - remainSize)] )
     		
     		
     		//concat what's left of the past read with the slice of the current read minus any words cut in half
@@ -160,7 +162,7 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
     		n, err := f.Write(tmp)
     		//check(err)
     		
-    		
+    		bytesReadAux = bytesRead
 			fmt.Println(n)
 			numMapFiles++
 		}
