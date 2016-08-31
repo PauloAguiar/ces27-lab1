@@ -202,5 +202,5 @@ wordcount$ wordcount.exe -file files/pg1342.txt
 > Storing locally.    MapId: 4        Len: 17819  
 > Storing locally.    MapId: 5        Len: 18415  
 > Storing locally.    MapId: 6        Len: 17824  
-> Storing locally.    MapId: 7        Len: 17806  
+> Storing locally.    MapId: 7        Len: 122  
 > Fanning out file result\result-0  
