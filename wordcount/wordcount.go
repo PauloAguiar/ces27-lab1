@@ -40,7 +40,7 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	 * Removing all invalid characters
 	 * Replacing set of white space by one white space 
 	 */
-	for _,rexp := range []string{"([^A-Za-z]+)", " +"} {
+	for _,rexp := range []string{"([^A-Za-z0-9]+)", " +"} {
 		
 		reg, err := regexp.Compile(rexp)
 

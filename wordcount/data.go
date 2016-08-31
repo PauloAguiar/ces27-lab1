@@ -96,18 +96,12 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
     s.Split(bufio.ScanRunes)
 
 	/*
-	 * Setting variables:
-	 * 	chk: counts the chunksize for a file
-	 * 	data: stores all string of a file
-	 * 	word: stores a fragment of a file
-	 * 	dataset: is an array of string per file
+	 * Setting variables
 	 */
-	chk := 0
+	chk   := 0  // counts the chunksize for a file
+	data  := "" // stores all string of a file
+	word  := "" // stores a fragment of a file
 	
-	data := ""
-	word := ""
-	dataset := make([]string, 0)
-
 	/*
 	 * - for each rune do
 	 *   - count rune size
@@ -133,7 +127,8 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 				word = ""
 			}
 		} else {
-			dataset = append(dataset, data)
+			ioutil.WriteFile(mapFileName(numMapFiles), []byte(data), 0644)
+			numMapFiles++
 			data = word + r
 			chk =  len(data)
 			
@@ -144,19 +139,13 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	}
 	
 	/*
-	 * Appending last fragment
+	 * Generating last file
 	 */
-	dataset = append(dataset, data)
+	ioutil.WriteFile(mapFileName(numMapFiles), []byte(data), 0644)
 	
 	/*
-	 * creating a file for each fragment
+	 * Returning 
 	 */
-	for index,content := range dataset {
-		ioutil.WriteFile(mapFileName(index), []byte(content), 0644)
-		numMapFiles++
-	}
-
-	
 	return numMapFiles, nil
 }
 
