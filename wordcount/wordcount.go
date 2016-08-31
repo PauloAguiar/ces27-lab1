@@ -1,12 +1,11 @@
 package main
 
 import (
-	"log"
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"hash/fnv"
-	"regexp"
-	"strings"
 	"strconv"
+	"strings"
+	"unicode"
 )
 
 /**
@@ -36,34 +35,32 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	s := string(input)
 
 	/*
-	 * Clearing text using regular expression
-	 * Removing all invalid characters
-	 * Replacing set of white space by one white space 
-	 */
-	for _,rexp := range []string{"([^A-Za-z0-9]+)", " +"} {
-		
-		reg, err := regexp.Compile(rexp)
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		s = reg.ReplaceAllString(s, " ")
-	}
-
-	/*
 	 * Split text and generating output
 	 */
 	result = make([]mapreduce.KeyValue, 0)
-	
-	slice := strings.Split(strings.ToLower(s), " ")
-	
-	for _, text := range slice {
-		if (text != "") {
-			result = append(result, mapreduce.KeyValue{text, "1"})
+
+	word := ""
+
+	for _, runeValue := range s {
+
+		if !unicode.IsLetter(runeValue) && !unicode.IsNumber(runeValue) {
+
+			if len(word) > 0 {
+				result = append(result, mapreduce.KeyValue{strings.ToLower(word), "1"})
+				word = ""
+			}
+		} else {
+			word += string(runeValue)
 		}
 	}
-	
+
+	/*
+	 * Adding last word
+	 */
+	if len(word) > 0 {
+		result = append(result, mapreduce.KeyValue{strings.ToLower(word), "1"})
+	}
+
 	return result
 }
 
@@ -87,30 +84,30 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 	 * 	It's also possible to receive a non-numeric value (i.e. "+"). You can check the
 	 * 	error returned by Atoi and if it's not 'nil', use 1 as the value.
 	 */
-	
+
 	m := make(map[string]int)
-	
-	for _,str := range input {
-		
+
+	for _, str := range input {
+
 		if _, ok := m[str.Key]; !ok {
 			m[str.Key] = 0
 		}
 
 		i, err := strconv.Atoi(str.Value)
-		
+
 		if err != nil {
-			m[str.Key] = m[str.Key] + 1 	
+			m[str.Key] = m[str.Key] + 1
 		} else {
 			m[str.Key] = m[str.Key] + i
 		}
 	}
-	
+
 	result = make([]mapreduce.KeyValue, 0)
-	
+
 	for k := range m {
 		result = append(result, mapreduce.KeyValue{k, strconv.Itoa(m[k])})
 	}
-	
+
 	return result
 }
 

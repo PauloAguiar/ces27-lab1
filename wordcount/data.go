@@ -9,6 +9,8 @@ import (
 	"os"
 	"path/filepath"
 	"bufio"
+	"unicode"
+	"unicode/utf8"
 )
 
 const (
@@ -115,24 +117,30 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	 */
 	for s.Scan() {
 		
-		r := s.Text()
+		r := []rune(s.Text())[0]
 
-		chk += len(r)
+		chk += utf8.RuneLen(r)
 		
 		if chk < chunkSize {
-			word += r
 			
-			if r == " " {
+			word += string(r)
+			
+			if !unicode.IsLetter(r) && !unicode.IsNumber(r) {
 				data += word
 				word = ""
 			}
+			
 		} else {
+			
 			ioutil.WriteFile(mapFileName(numMapFiles), []byte(data), 0644)
+			
 			numMapFiles++
-			data = word + r
+			
+			data = word + string(r)
+			
 			chk =  len(data)
 			
-			if r == " " {
+			if !unicode.IsLetter(r) && !unicode.IsNumber(r) {
 				word = ""
 			}
 		}
