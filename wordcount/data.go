@@ -8,6 +8,9 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	//"math"
+	//"strconv"
+	//"io"
 )
 
 const (
@@ -83,38 +86,64 @@ func fanOutData() (output chan []mapreduce.KeyValue, done chan bool) {
 }
 
 // Reads input file and split it into files smaller than chunkSize.
-// CUTCUTCUTCUTCUT!
 func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
-	// 	When you are reading a file and the end-of-file is found, an error is returned.
-	// 	To check for it use the following code:
-	// 		if bytesRead, err = file.Read(buffer); err != nil {
-	// 			if err == io.EOF {
-	// 				// EOF error
-	// 			} else {
-	//				return 0, err
-	//			}
-	// 		}
-	//
-	// 	Use the mapFileName function to generate the name of the files!
-	//
-	//	Go strings are encoded using UTF-8.
-	// 	This means that a character can't be handled as a byte. There's no char type.
-	// 	The type that hold's a character is called a 'rune' and it can have 1-4 bytes (UTF-8).
-	//	Because of that, it's not possible to index access characters in a string the way it's done in C.
-	//		str[3] will return the 3rd byte, not the 3rd rune in str, and this byte may not even be a valid
-	//		rune by itself.
-	//		Rune handling should be done using the package 'strings' (https://golang.org/pkg/strings/)
-	//
-	//  For more information visit: https://blog.golang.org/strings
-	//
-	//	It's also important to notice that errors can be handled here or they can be passed down
-	// 	to be handled by the caller as the second parameter of the return.
-
-	/////////////////////////
-	// YOUR CODE GOES HERE //
-	/////////////////////////
-	numMapFiles = 0
-	return numMapFiles, nil
+	
+	file, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		fmt.Println(err)
+		return 0, err
+	}
+	//var fileSize int = len(file)
+	var buffer []byte
+	var bufferPalavra []byte
+	counter := 0
+	countIn := 0
+	for _, num := range file {
+		if len(buffer)<=0 && len(bufferPalavra) > 0 {
+			for _, num2 := range bufferPalavra{
+				buffer = append(buffer, num2)
+			}
+		}
+		if num != 32 && countIn != 0{
+			bufferPalavra = append(bufferPalavra, num)
+		} else {
+			bufferPalavra = append(bufferPalavra, num)
+			bufferTotal := len(buffer) + len(bufferPalavra)
+			if bufferTotal >= chunkSize {
+				name := mapFileName(counter)
+				smallFile, err := os.Create(name)
+				if err != nil {
+					fmt.Println(err)
+					return 0, err
+				}
+				ioutil.WriteFile(name, buffer, os.ModeAppend)
+				smallFile.Close()
+				counter++
+				buffer = buffer[:0]
+			} else {
+				for _, num2 := range bufferPalavra{
+					buffer = append(buffer, num2)
+				}
+				bufferPalavra = bufferPalavra[:0]
+			}
+		}
+		countIn = 1
+	}
+	if len(buffer) >0 {
+		for _, num2 := range bufferPalavra{
+			buffer = append(buffer, num2)
+		}
+		name := mapFileName(counter)
+		smallFile, err := os.Create(name)
+		if err != nil {
+			fmt.Println(err)
+			return 0, err
+		}
+		ioutil.WriteFile(name, buffer, os.ModeAppend)
+		smallFile.Close()
+		buffer = buffer[:0]
+	}
+	return counter, err
 }
 
 func mapFileName(id int) string {
