@@ -3,6 +3,8 @@ package main
 import (
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"hash/fnv"
+	"unicode"
+	"strings"
 )
 
 // mapFunc is called for each array of bytes read from the splitted files. For wordcount
@@ -24,8 +26,24 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 
 	/////////////////////////
 	// YOUR CODE GOES HERE //
-	/////////////////////////
-	result = make([]mapreduce.KeyValue, 0)
+	/////////////////////////	
+	
+	// All characters to lower case
+	input_s := strings.ToLower(string(input))
+	
+	// Split using custom function, split on all characters that are not letters
+	words := strings.FieldsFunc(input_s, func(r rune) bool {
+			return !unicode.IsLetter(r)
+		})
+
+	// make array of mapreduce.KeyValue to return
+	result = make([]mapreduce.KeyValue, len(words))
+
+	// iterate through the words and insert into the return array
+	for i, w := range words {
+		result[i] = mapreduce.KeyValue{Key: w, Value: "1"}
+	}
+	
 	return result
 }
 
