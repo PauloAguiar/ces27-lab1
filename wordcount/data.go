@@ -114,6 +114,7 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	// YOUR CODE GOES HERE //
 	/////////////////////////
 	f, err := os.Open(fileName)
+	defer f.Close()
     if err != nil {
        	panic(err)
     }
@@ -135,7 +136,6 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
     	}
     	numMapFiles++;
     }
-    f.Close()
 	return numMapFiles, nil
 }
 
