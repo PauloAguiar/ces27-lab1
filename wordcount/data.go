@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"io"
+	//"unicode"
 	"path/filepath"
 )
 
@@ -113,7 +115,44 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
+	file, err := os.Open(fileName)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	buffer := make([]byte, chunkSize)
 	numMapFiles = 0
+	err = nil
+
+	for err != io.EOF {
+		bytesRead , err := file.Read(buffer)
+		if err != nil {
+			if err == io.EOF {
+				// EOF error
+				newFile, _ := os.Create(mapFileName(numMapFiles))
+				// fmt.Println(string(buffer))
+				//aux := len(buffer) - 1
+				//r := rune(buffer[aux])
+				//if (!unicode.IsLetter(r) && !unicode.IsNumber(r)) {
+					// Alguma coisa
+				//}
+				last := buffer[:bytesRead]
+				// fmt.Printf("%v %v \n\n", bytesRead, len(last))
+				_ , _ = newFile.Write(last)
+				newFile.Close()
+				break
+			} else {
+				return 0, err
+			}
+		}
+		newFile, _ := os.Create(mapFileName(numMapFiles))
+		// fmt.Println(string(buffer))
+		_ , _ = newFile.Write(buffer)
+		numMapFiles++
+		newFile.Close()
+	}
+
+	file.Close();
 	return numMapFiles, nil
 }
 
