@@ -1,9 +1,11 @@
 package main
 
 import (
-	"github.com/pauloaguiar/ces27-lab1/mapreduce"
-	"hash/fnv"
+    "fmt"
+    "github.com/pauloaguiar/ces27-lab1/mapreduce"
+    "hash/fnv"
 )
+
 
 // mapFunc is called for each array of bytes read from the splitted files. For wordcount
 // it should convert it into an array and parses it into an array of KeyValue that have
@@ -25,6 +27,7 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
+	fmt.Printf("Input Length: %v\n", len(input))
 	result = make([]mapreduce.KeyValue, 0)
 	return result
 }
