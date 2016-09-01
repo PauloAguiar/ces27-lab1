@@ -3,6 +3,10 @@ package main
 import (
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"hash/fnv"
+	"strings"
+	"unicode"
+	"strconv"
+	
 )
 
 // mapFunc is called for each array of bytes read from the splitted files. For wordcount
@@ -26,6 +30,26 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	// YOUR CODE GOES HERE //
 	/////////////////////////
 	result = make([]mapreduce.KeyValue, 0)
+	inputS := strings.ToLower(string(input))
+	key := ""
+	value := "1"
+	
+	for _, c := range inputS {
+		if !unicode.IsLetter(c) && !unicode.IsNumber(c){
+			if key != ""{
+				result = append(result, mapreduce.KeyValue{key,value})
+				key = ""
+			}
+		}else {
+			key+=string(c)
+		}
+	}
+	if (key!=""){
+		result = append(result, mapreduce.KeyValue{key,value})
+	}
+	
+	
+	
 	return result
 }
 
@@ -50,6 +74,28 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 	// YOUR CODE GOES HERE //
 	/////////////////////////
 	result = make([]mapreduce.KeyValue, 0)
+	
+	auxMap := make(map[string]int)
+	
+	for _, _KeyValue := range input {
+		
+		val, error := strconv.Atoi(_KeyValue.Value)
+		if error != nil{
+			val = 1
+		}
+		
+		if _, ok := auxMap[_KeyValue.Key]; !ok {
+			auxMap[_KeyValue.Key] = val
+		} else {
+			auxMap[_KeyValue.Key] += val
+		}
+	}
+	
+	for key, value := range auxMap{
+		result = append(result, mapreduce.KeyValue{key, strconv.Itoa(value)})
+	}
+	
+	
 	return result
 }
 
