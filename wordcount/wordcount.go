@@ -5,6 +5,7 @@ import (
 	"hash/fnv"
 	"unicode"
 	"strings"
+	"strconv"
 )
 
 // mapFunc is called for each array of bytes read from the splitted files. For wordcount
@@ -43,7 +44,7 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	for i, w := range words {
 		result[i] = mapreduce.KeyValue{Key: w, Value: "1"}
 	}
-	
+
 	return result
 }
 
@@ -67,7 +68,29 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
-	result = make([]mapreduce.KeyValue, 0)
+
+	// create map to count ocurrencies
+	count := make(map[string]int)
+
+	// iterate through the input and accumulate ocurrencies in the map
+	for _, pair := range input {
+
+		// convert value to integer
+		v_int, err := strconv.Atoi(pair.Value)
+
+		// if value is non-numeric, use 1
+		if err != nil {
+			v_int = 1
+		}
+
+		// accumulate value in the map
+		count[pair.Key] += v_int
+	}
+
+	// copy key-value pair from the map to the return array
+    for k, v := range count {	
+        result = append(result, mapreduce.KeyValue{k, strconv.Itoa(v)})
+    }
 	return result
 }
 
