@@ -121,12 +121,15 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	remainSize := 0
 	remainSizeAux := 0
 	var bytesRead int  
-	bufferAux := make([]byte, chunkSize)
+	//bufferAux := make([]byte, chunkSize)
 	bytesReadAux := 0
 
 	for {
-		
 		remainSizeAux = remainSize
+		if bytesReadAux != 0 && bytesReadAux - remainSizeAux >= 0 && remainSizeAux >= 0 {
+			bufferAux := buffer[(bytesReadAux - remainSizeAux):remainSizeAux]
+		}
+		//consider the case in witch text files are smaller than chunk size
 		if bytesRead, err = file.Read(buffer[0:(chunkSize - remainSizeAux)]); err != nil {
 			if err == io.EOF {
 				// EOF error
@@ -135,7 +138,7 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 				return 0, err
 			}
 		} else {
-			bufferAux = buffer[(bytesReadAux - remainSizeAux):remainSizeAux]
+			
 			//creates file in witch chunk will be written
 			f, err := os.Create(mapFileName(numMapFiles))
     		//check(err)
@@ -150,9 +153,9 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
     		//stores content to be written on the next file 
 			tmp := make([]byte, (chunkSize - remainSize))
 
-    		if remainSizeAux != 0 {
-    			copy( tmp , bufferAux)	
-    		} 
+    		//if remainSizeAux != 0 {
+    			//copy( tmp , bufferAux)	
+    		//} 
     		copy ( tmp[remainSizeAux:(bytesRead - remainSize)] , buffer[0:(bytesRead - remainSize)] )
     		
     		
@@ -161,7 +164,8 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
     		
     		n, err := f.Write(tmp)
     		//check(err)
-    		
+    		fmt.Println(bufferAux)
+    		fmt.Println(bytesReadAux)
     		bytesReadAux = bytesRead
 			fmt.Println(n)
 			numMapFiles++
