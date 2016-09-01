@@ -92,11 +92,24 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	// 			if err == io.EOF {
 	// 				// EOF error
 	// 			} else {
-	//				panic(err)
+	//				return 0, err
 	//			}
 	// 		}
 	//
 	// 	Use the mapFileName function to generate the name of the files!
+	//
+	//	Go strings are encoded using UTF-8.
+	// 	This means that a character can't be handled as a byte. There's no char type.
+	// 	The type that hold's a character is called a 'rune' and it can have 1-4 bytes (UTF-8).
+	//	Because of that, it's not possible to index access characters in a string the way it's done in C.
+	//		str[3] will return the 3rd byte, not the 3rd rune in str, and this byte may not even be a valid
+	//		rune by itself.
+	//		Rune handling should be done using the package 'strings' (https://golang.org/pkg/strings/)
+	//
+	//  For more information visit: https://blog.golang.org/strings
+	//
+	//	It's also important to notice that errors can be handled here or they can be passed down
+	// 	to be handled by the caller as the second parameter of the return.
 
 	numMapFiles = 0
 

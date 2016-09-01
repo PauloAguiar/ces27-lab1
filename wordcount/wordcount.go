@@ -74,7 +74,10 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 	//
 	// 	Reduce will receive KeyValue pairs that have string values, you may need to
 	// 	convert those values to int before being able to use it in operations.
-	//  	strconv.Atoi(string_number)
+	//  	package strconv: func Atoi(s string) (int, error)
+	//
+	// 	It's also possible to receive a non-numeric value (i.e. "+"). You can check the
+	// 	error returned by Atoi and if it's not 'nil', use 1 as the value.
 
 	result = make([]mapreduce.KeyValue, 0)
 

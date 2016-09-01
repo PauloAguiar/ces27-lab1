@@ -99,7 +99,9 @@ Abra o arquivo *wordcount.go* e implemente as funções **Map** e **Reduce** uti
 
 A saída de ambas as funções é uma estrutura do tipo *[]mapreduce.KeyValue*.
 
-Note que na função de Map, na imagem temos vários elementos com a mesma chave. Uma outra possibilidade é retornar o total de ocorrências no arquivo. Neste caso, ao invés de retornar [(Car, 1), (Car, 1), (River, 1)], retornaríamos [(Car, 2), (River, 1)]. Ambos os casos devem funcionar corretamente.
+Note que na função de Map, na imagem temos vários elementos com a mesma chave. Uma outra possibilidade é retornar o total de ocorrências no arquivo. Neste caso, ao invés de retornar [("Car", "1"), ("Car", "1"), ("River", "1")], retornaríamos [("Car", "2"), ("River", "1")]. Ambos os casos devem funcionar corretamente.
+
+Uma outra possibilidade é que a ao invés de retornar uma representação numérica, fosse retornado um símbolo indicar de presençã, por exemplo "+", ficando então [("Car", "+"), ("Car", "+"), ("River", "+")]. Ambos os casos devem ser tratados corretamente pelo reduce.
 
 Para verificar sua implementação, execute os testes fornecidos da seguinte forma na pasta *wordcount*:
 
@@ -116,23 +118,8 @@ wordcount$ go test -v
 > --- PASS: TestMapFunc (0.00s)  
 > 	wordcount_test.go:120: Description: empty  
 > 	wordcount_test.go:120: Description: one word  
-> 	wordcount_test.go:120: Description: two words  
-> 	wordcount_test.go:120: Description: repeated word  
-> 	wordcount_test.go:120: Description: invalid character  
-> 	wordcount_test.go:120: Description: newline character  
-> 	wordcount_test.go:120: Description: multiple whitespaces  
-> 	wordcount_test.go:120: Description: special characters  
-> 	wordcount_test.go:120: Description: uppercase characters  
-> === RUN   TestReduceFunc  
-> --- PASS: TestReduceFunc (0.00s)  
-> 	wordcount_test.go:191: Description: no entry  
-> 	wordcount_test.go:191: Description: one entry  
-> 	wordcount_test.go:191: Description: two entries with same keys  
-> 	wordcount_test.go:191: Description: two entries with different keys  
-> 	wordcount_test.go:191: Description: non-numeric counter  
-> PASS  
-> ok  	github.com/pauloaguiar/lab1-ces27/wordcount	0.039s  
-    
+> (...)  
+
 É possível executar um teste isoladamente utilizando o parâmetro -run *regex*, onde *regex* deve ser substituído por uma expressão regular que vai ser comparada com os nomes das funções de teste.
 
 ```shell
@@ -150,8 +137,20 @@ wordcount$ go test -v -run Map
 > 	wordcount_test.go:120: Description: special characters  
 > 	wordcount_test.go:120: Description: uppercase characters  
 > PASS  
-> ok  	github.com/pauloaguiar/lab1-ces27/wordcount	0.023s  
+> ok  	github.com/pauloaguiar/ces27-lab1/wordcount	0.023s  
 
+```shell
+wordcount$ go test -v -run Reduce
+```
+> === RUN   TestReduceFunc  
+> --- PASS: TestReduceFunc (0.00s)  
+>         wordcount_test.go:223: Description: no entry  
+>         wordcount_test.go:223: Description: one entry  
+>         wordcount_test.go:223: Description: two entries with same keys  
+>         wordcount_test.go:223: Description: two entries with different keys  
+>         wordcount_test.go:223: Description: non-numeric counter  
+> PASS  
+> ok      github.com/pauloaguiar/ces27-lab1/wordcount     0.024s  
 
 **Implementando splitData**
 
@@ -173,7 +172,7 @@ wordcount$ go test -v -run Split
 > 	wordcount_test.go:60: Description: text file smaller than chunk size  
 > 	wordcount_test.go:60: Description: text file has exact chunk size  
 > PASS  
-> ok  	github.com/pauloaguiar/lab1-ces27/wordcount	0.039s  
+> ok  	github.com/pauloaguiar/ces27-lab1/wordcount	0.039s  
 
 **Executando MapReduce**
 
@@ -203,5 +202,5 @@ wordcount$ wordcount.exe -file files/pg1342.txt
 > Storing locally.    MapId: 4        Len: 17819  
 > Storing locally.    MapId: 5        Len: 18415  
 > Storing locally.    MapId: 6        Len: 17824  
-> Storing locally.    MapId: 7        Len: 17806  
+> Storing locally.    MapId: 7        Len: 122  
 > Fanning out file result\result-0  

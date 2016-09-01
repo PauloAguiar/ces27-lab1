@@ -35,7 +35,7 @@ import (
 )
 ```
 
-Para verificar as nossas alterações:
+Para verificar a nossa alteração:
 ```shell
 wordcount$ go test -v -run Map
 ```
@@ -138,6 +138,8 @@ Imprimindo tamanho do input
 #       ../SETUP.md
 ```
 
+**É importante notar que o comentário não pode começar com '#' e que mensagens vazias não serão aceitas.**
+
 Para gravar o arquivo, você deve apertar **ESC** para sair do modo de inserção(-- INSERT --), apertar **SHIFT+;** para abrir a linha de comando do VIM, digitar **wq** e apertar **ENTER**.
 
 > [master a68a570] Imprimindo tamanho do input  
@@ -159,10 +161,9 @@ Para enviar as suas alterações para o seu repositório remoto (Fork no GitHub)
 
 ## Atualizando Repositório Local
 
-Caso o repositório origin tenha sido atualizado, você pode fazer um pull das novas alterações sempre entrar em conflito com as alterações locais utilizando os seguintes comandos:
+Caso o repositório *origin* tenha sido atualizado, você pode fazer um *pull* das novas alterações e um *rebase* com as alterações locais utilizando os seguintes comandos:
 
 ```shell
 $ git fetch origin
 $ git rebase origin/master
-
 ```
