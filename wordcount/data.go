@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"io"
 )
 
 const (
@@ -83,7 +84,6 @@ func fanOutData() (output chan []mapreduce.KeyValue, done chan bool) {
 }
 
 // Reads input file and split it into files smaller than chunkSize.
-// CUTCUTCUTCUTCUT!
 func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	// 	When you are reading a file and the end-of-file is found, an error is returned.
 	// 	To check for it use the following code:
@@ -113,7 +113,29 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
-	numMapFiles = 0
+	f, err := os.Open(fileName)
+    if err != nil {
+       	panic(err)
+    }
+    var buffer []byte
+    //var bytesRead int
+    numMapFiles = 0
+    for {
+    	buffer = make([]byte, chunkSize)
+    	if _, err = f.Read(buffer); err != nil {
+    		if err == io.EOF {
+    			return numMapFiles, nil
+    		} else {
+    			return 0, err
+    		}
+    	}
+	    err := ioutil.WriteFile(mapFileName(numMapFiles), buffer, os.ModeAppend)
+	    if err != nil {
+       		panic(err)
+    	}
+    	numMapFiles++;
+    }
+    f.Close()
 	return numMapFiles, nil
 }
 
