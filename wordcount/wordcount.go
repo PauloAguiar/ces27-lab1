@@ -3,6 +3,10 @@ package main
 import (
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"hash/fnv"
+	"strconv"
+	"strings"
+	"unicode"
+	"fmt"
 )
 
 // mapFunc is called for each array of bytes read from the splitted files. For wordcount
@@ -26,6 +30,34 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	// YOUR CODE GOES HERE //
 	/////////////////////////
 	result = make([]mapreduce.KeyValue, 0)
+	var k mapreduce.KeyValue
+	var i int = 0
+	var ini int = 0
+	var c rune
+	var str string
+
+	for ; i < len(input);  i++ {
+		c = rune(input[i])
+		if str = string(input[ini:i]) ; !unicode.IsLetter(c) && !unicode.IsNumber(c){
+			if i != ini{
+				str = strings.ToLower(str)
+				k = mapreduce.KeyValue{Key: str , Value: string(1)}
+				result = append(result, k)
+			}
+			ini = i + 1
+		}
+	}
+
+	if i != ini{
+		str = string(input[ini:i]) 
+		str = strings.ToLower(str)
+		k = mapreduce.KeyValue{Key: str , Value: string(1)}
+		result = append(result, k)
+	}
+	//Enquanto o array de bytes nao tiver acabado
+		//acha o proximo ponto de separacao
+		//converte para string
+		//guarda em um vetor mapreduce
 	return result
 }
 
@@ -49,7 +81,44 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
-	result = make([]mapreduce.KeyValue, 0)
+
+	//Codigo reutilizado de wordcount_test.go
+	var (
+		combined  map[string]int
+		k mapreduce.KeyValue
+	)
+
+
+		combined = make(map[string]int, 0)
+
+		for _, kv := range input {
+			if _, ok := combined[kv.Key]; !ok {
+				value, err := strconv.Atoi(kv.Value)
+				if err != nil {
+					combined[kv.Key] = 1
+				} else {
+					combined[kv.Key] = value
+				}
+
+			} else {
+				value, err := strconv.Atoi(kv.Value)
+				if err != nil {
+					combined[kv.Key] += 1
+				} else {
+					combined[kv.Key] += value
+				}
+			}
+		}
+
+		fmt.Println(combined)
+
+		//result = make([]mapreduce.KeyValue, 0)
+		for str, value := range combined{
+			s := strconv.Itoa(value)
+			k = mapreduce.KeyValue{Key: str , Value: s}
+			result = append(result, k)
+		}
+
 	return result
 }
 
