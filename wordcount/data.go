@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"io"
 )
 
 const (
@@ -113,8 +114,60 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
+
+	//Doente, me perdoa por esse codigo tao feio :(
+	var(
+		mapFile 	*os.File
+		input 		*os.File
+		size 		int
+		chunk 		[]byte
+		buffer		[]byte = make([]byte, 1)
+		totalSize 	int
+		)
+
 	numMapFiles = 0
-	return numMapFiles, nil
+
+	if input, err = os.Open(fileName); err != nil {
+			log.Fatal(err)
+		}
+
+
+	for _, err = input.Read(buffer); err == nil; _, err = input.Read(buffer) { 
+		chunk = append(chunk, buffer[0])
+		totalSize++
+		size++
+		if size == chunkSize {
+			if mapFile, err = os.Create(mapFileName(numMapFiles)); err != nil {
+				log.Fatal(err)
+			}
+			numMapFiles++
+
+			if _, err = mapFile.Write(chunk); err != nil {
+				return numMapFiles, err
+			}
+			mapFile.Close()
+			size = 0
+			chunk = make([]byte, 0)
+		} 
+	}
+
+	input.Close()
+
+	if err == io.EOF{
+		if len(chunk) > 0{
+			if mapFile, err = os.Create(mapFileName(numMapFiles)); err != nil {
+				log.Fatal(err)
+			}
+			numMapFiles++
+
+			if _, err = mapFile.Write(chunk); err != nil {
+				return numMapFiles, err
+			}
+			mapFile.Close()
+		}
+		return numMapFiles, nil
+	}
+	return numMapFiles, err
 }
 
 func mapFileName(id int) string {

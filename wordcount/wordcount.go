@@ -29,6 +29,8 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
+
+	//Doente, me perdoa por esse codigo tao feio :(
 	result = make([]mapreduce.KeyValue, 0)
 	var k mapreduce.KeyValue
 	var i int = 0
@@ -109,8 +111,6 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 				}
 			}
 		}
-
-		fmt.Println(combined)
 
 		//result = make([]mapreduce.KeyValue, 0)
 		for str, value := range combined{
