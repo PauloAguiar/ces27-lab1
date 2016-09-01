@@ -28,18 +28,25 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	//			strconv.Atoi("5") // = 5
 	result = make([]mapreduce.KeyValue, 0) 
 	
-	n := bytes.Index(input, []byte{0}) //input size
-	s := string(input[0:n]) //converts array of bytes into an array
-	strings.ToLower(s) //make words lower cased
+	//n := bytes.Index(input, []byte{0}) //input size
+	s := string(input) //converts array of bytes into an array
+	s = strings.ToLower(s) //make words lower cased
 
-	sepAux := 0
-	for sep := 1 ; sep < len(s)  ; sep++ {
+	var buffer bytes.Buffer
+	//for sep := 1 ; sep < len(s)  ; sep++ {
+	for _ , carac := range s {
 		//case a separator is found, new word must be added to the result
-		if( !unicode.IsLetter(rune(s[sep])) && !unicode.IsNumber(rune(s[sep]))){
-			result = append(result , mapreduce.KeyValue{Key:s[(sepAux + 1):(sep - sepAux - 1)] , Value:strconv.Itoa(1)})
-			sepAux = sep 
+		if( !unicode.IsLetter(rune(carac)) && !unicode.IsNumber(rune(carac))){
+			result = append(result , mapreduce.KeyValue{Key:buffer.String() , Value:strconv.Itoa(1)}) 
+			buffer.Reset()
+		} else {
+			quoted := strconv.QuoteRuneToASCII(carac)
+   			unquoted := quoted[1:len(quoted)-1] 
+			buffer.WriteString(unquoted)
 		}
 	}
+	//}
+	
 	
 	return result
 	/*for c := 0 ; c < utf8.RuneCountInString(s) ;  c++ {
