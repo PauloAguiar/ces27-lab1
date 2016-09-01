@@ -3,7 +3,19 @@ package main
 import (
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"hash/fnv"
+	"strings"
+	"unicode"
+	"strconv"
 )
+
+func appendToKVSplit(word string, input []mapreduce.KeyValue)(result []mapreduce.KeyValue){
+	var item mapreduce.KeyValue
+	item.Key = strings.ToLower(word)
+	item.Value = "1"
+	result = append(input, item)
+
+	return result
+}
 
 // mapFunc is called for each array of bytes read from the splitted files. For wordcount
 // it should convert it into an array and parses it into an array of KeyValue that have
@@ -21,11 +33,32 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	// 		If you want to convert to and from string types, use the package 'strconv':
 	// 			strconv.Itoa(5) // = "5"
 	//			strconv.Atoi("5") // = 5
-
-	/////////////////////////
-	// YOUR CODE GOES HERE //
-	/////////////////////////
+	
+	// Get the size of the input chunk
+	input_size := len(input)
+	// Cast it to string
+	s_input := string(input[:input_size])
+	// Create slice with result
 	result = make([]mapreduce.KeyValue, 0)
+	// Detect and list the words
+	word := ""
+
+	for _, c := range s_input {
+		if !unicode.IsLetter(c) && !unicode.IsNumber(c) {
+			if word != "" {
+				result = appendToKVSplit(word, result)
+				word = ""
+			}
+		} else {
+			word = word + string(c)
+		}
+	}
+
+	// Get the last word
+	if word != "" {
+		result = appendToKVSplit(word, result)
+	}
+
 	return result
 }
 
@@ -34,19 +67,42 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 	// 	Maybe it's easier if we have an auxiliary structure? Which one?
 	//
-	// 	You can check if a map have a key as following:
+	// 	You can check if a map has a key as following:
 	// 		if _, ok := myMap[myKey]; !ok {
 	//			// Don't have the key
 	//		}
 	//
-	// 	Reduce will receive KeyValue pairs that have string values, you may need
+	// 	Reduce will receive KeyValue pairs that have string values, you may need to
 	// 	convert those values to int before being able to use it in operations.
 	//  	strconv.Atoi(string_number)
 
-	/////////////////////////
-	// YOUR CODE GOES HERE //
-	/////////////////////////
 	result = make([]mapreduce.KeyValue, 0)
+
+	wordsMap := map[string]int{}
+
+	for _, kvPair := range input {
+		if _, ok := wordsMap[kvPair.Key]; !ok {
+			if value, err := strconv.Atoi(kvPair.Value); err != nil {
+				wordsMap[kvPair.Key] = 1
+			} else {
+				wordsMap[kvPair.Key] = value
+			}
+		} else {
+			if value, err := strconv.Atoi(kvPair.Value); err != nil {
+				wordsMap[kvPair.Key] += 1
+			} else {
+				wordsMap[kvPair.Key] += value
+			}
+		}
+	}
+
+	for k, v := range wordsMap {
+		var item mapreduce.KeyValue
+		item.Key = k
+		item.Value = strconv.Itoa(v)
+		result = append(result, item)
+	}
+
 	return result
 }
 
