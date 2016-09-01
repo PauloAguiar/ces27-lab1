@@ -8,6 +8,9 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"io"
+	"unicode"
+	//"bufio"
 )
 
 const (
@@ -110,10 +113,66 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	//	It's also important to notice that errors can be handled here or they can be passed down
 	// 	to be handled by the caller as the second parameter of the return.
 
-	/////////////////////////
-	// YOUR CODE GOES HERE //
-	/////////////////////////
 	numMapFiles = 0
+	file, err := os.Open(fileName)
+	defer file.Close()
+
+	buffer := make( []byte, chunkSize) //buffer to read file
+	remainSize := 0
+	remainSizeAux := 0
+	var bytesRead int  
+	//bufferAux := make([]byte, chunkSize)
+	bytesReadAux := 0
+
+	for {
+		remainSizeAux = remainSize
+		if bytesReadAux != 0 && bytesReadAux - remainSizeAux >= 0 && remainSizeAux >= 0 {
+			bufferAux := buffer[(bytesReadAux - remainSizeAux):remainSizeAux]
+		}
+		//consider the case in witch text files are smaller than chunk size
+		if bytesRead, err = file.Read(buffer[0:(chunkSize - remainSizeAux)]); err != nil {
+			if err == io.EOF {
+				// EOF error
+				break
+			} else {
+				return 0, err
+			}
+		} else {
+			
+			//creates file in witch chunk will be written
+			f, err := os.Create(mapFileName(numMapFiles))
+    		//check(err)
+    		defer f.Close()
+    		fmt.Println(bytesRead)
+    		fmt.Println(err)
+    		//number of characters between last separator and end end of chunk
+    		remainSize = 0
+    		for  !( !unicode.IsLetter(rune(buffer[bytesRead - remainSize - 1]) ) && !unicode.IsNumber(rune(buffer[bytesRead - remainSize - 1] ))) {
+    			remainSize++
+    		}
+    		//stores content to be written on the next file 
+			tmp := make([]byte, (chunkSize - remainSize))
+
+    		//if remainSizeAux != 0 {
+    			//copy( tmp , bufferAux)	
+    		//} 
+    		copy ( tmp[remainSizeAux:(bytesRead - remainSize)] , buffer[0:(bytesRead - remainSize)] )
+    		
+    		
+    		//concat what's left of the past read with the slice of the current read minus any words cut in half
+    		
+    		
+    		n, err := f.Write(tmp)
+    		//check(err)
+    		fmt.Println(bufferAux)
+    		fmt.Println(bytesReadAux)
+    		bytesReadAux = bytesRead
+			fmt.Println(n)
+			numMapFiles++
+		}
+
+	}
+		
 	return numMapFiles, nil
 }
 
