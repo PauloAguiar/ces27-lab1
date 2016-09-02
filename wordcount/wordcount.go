@@ -4,6 +4,9 @@ import (
     "fmt"
     "github.com/pauloaguiar/ces27-lab1/mapreduce"
     "hash/fnv"
+    "unicode"
+    "strings"
+    "strconv"
 )
 
 
@@ -28,7 +31,28 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	// YOUR CODE GOES HERE //
 	/////////////////////////
 	fmt.Printf("Input Length: %v\n", len(input))
-	result = make([]mapreduce.KeyValue, 0)
+	result = make([]mapreduce.KeyValue, 0) //vetor de tamanho zero de {string,string}
+	text := strings.ToLower(string(input) + " ") //precisou desse espaço para pegar a ultima palavra
+	var palavra string
+	//Vou usar a tabela auxiliar que nem o Reduce
+	var tabela = make(map[string]int)
+	for _, carac := range text {
+		
+		if (!unicode.IsLetter(carac) && !unicode.IsNumber(carac)) { //chegamos em um delimitador
+			if palavra != "" { //Se a palavra é vazia, nao faz nada
+				//se a palavra nao é vazia, adiciona-se na tabela Auxiliar
+					tabela[palavra]++
+			}
+			palavra = ""
+		} else {
+			palavra += string(carac)
+		} 
+	}
+	//agora transformarmos a tabela no resultado
+	for chave,valor := range tabela {
+		transformada := mapreduce.KeyValue{chave, strconv.Itoa(valor)}
+		result = append(result, transformada)
+	}
 	return result
 }
 
@@ -53,6 +77,26 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 	// YOUR CODE GOES HERE //
 	/////////////////////////
 	result = make([]mapreduce.KeyValue, 0)
+	var tabelaAuxiliar = make(map[string]int)
+	//tabela auxiliar
+	//A tabela começa vazia e o valor padra é zero!
+	//assim, basta adicionar de cara as palavras que são encontradas
+	
+	for _,abacaxi := range input {
+		//não precisa nem verificar se existe na tabelaAuxiliar!
+		//se não houver, será criado! Se já houver, será adicionado
+			valor, erro := strconv.Atoi(abacaxi.Value)
+			if erro != nil {
+				tabelaAuxiliar[abacaxi.Key]++
+			} else{
+				tabelaAuxiliar[abacaxi.Key] += valor
+			}
+	}
+	//agora basta transformar a tabelaAuxiliar no resultado
+	for chave,valor := range tabelaAuxiliar {
+		transformada := mapreduce.KeyValue{chave, strconv.Itoa(valor)}
+		result = append(result, transformada)
+	}
 	return result
 }
 
