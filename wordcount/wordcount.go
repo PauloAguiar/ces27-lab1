@@ -3,29 +3,52 @@ package main
 import (
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"hash/fnv"
+	"strings"
+	"strconv"
+	"unicode"
 )
 
 // mapFunc is called for each array of bytes read from the splitted files. For wordcount
 // it should convert it into an array and parses it into an array of KeyValue that have
 // all the words in the input.
 func mapFunc(input []byte) (result []mapreduce.KeyValue) {
-	// 	Pay attention! We are getting an array of bytes. Cast it to string.
+	// 	Pay attention! We are getting an array of bytes.
 	//
 	// 	To decide if a character is a delimiter of a word, use the following check:
 	//		!unicode.IsLetter(c) && !unicode.IsNumber(c)
 	//
 	//	Map should also make words lower cased:
 	//		strings.ToLower(string)
-	//
-	// IMPORTANT! The cast 'string(5)' won't return the character '5'.
-	// 		If you want to convert to and from string types, use the package 'strconv':
-	// 			strconv.Itoa(5) // = "5"
-	//			strconv.Atoi("5") // = 5
 
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
-	result = make([]mapreduce.KeyValue, 0)
+	var s string
+	var aux mapreduce.KeyValue
+	var words, ComposedWords []string
+	s = string(input)   //transformed byte to string
+	//references in https://golang.org/pkg/strings/#Split
+	f := func(c rune) bool {
+		return !unicode.IsLetter(c) && !unicode.IsNumber(c)
+	}
+	ComposedWords = strings.FieldsFunc(s, f)	
+	var PreResult = make(map[string]int)
+	//Based on the exercise https://go-tour-br.appspot.com/moretypes/19 	
+	for _, v := range ComposedWords {
+		words = append(words, strings.ToLower(v))
+	}	
+	for  _,v := range words{
+		if PreResult[v] == 0 {
+			PreResult[v] = 1
+		} else {
+			PreResult[v] = PreResult[v] + 1
+		}
+	}
+	for k, value := range PreResult {
+		aux.Key = k
+		aux.Value = strconv.Itoa(value)
+		result = append(result,aux)
+    }
 	return result
 }
 
@@ -41,16 +64,41 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 	//
 	// 	Reduce will receive KeyValue pairs that have string values, you may need
 	// 	convert those values to int before being able to use it in operations.
-	//  	package strconv: func Atoi(s string) (int, error)
-	//
-	// 	It's also possible to receive a non-numeric value (i.e. "+"). You can check the
-	// 	error returned by Atoi and if it's not 'nil', use 1 as the value.
+	//  	strconv.Atoi(string_number)
 
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
-	result = make([]mapreduce.KeyValue, 0)
-	return result
+	var resultReduce = make(map[string]int)
+	var wordsReduce []string
+	var valuesReduce []int
+	var auxInt int
+	for _, v := range input {
+		wordsReduce = append(wordsReduce, v.Key)
+		if v.Value == "+" {
+			v.Value = "1"
+		}
+		auxInt, _ = strconv.Atoi(v.Value)
+		valuesReduce = append(valuesReduce, auxInt)
+	}
+	for i, v := range wordsReduce {
+		if resultReduce[v] == 0 {
+			resultReduce[v] = valuesReduce[i]
+		} else{
+			resultReduce[v] = resultReduce[v] + valuesReduce[i]
+		}
+	}
+
+	var output = make([]mapreduce.KeyValue, 0)
+	var aux mapreduce.KeyValue
+	for k, v := range resultReduce {
+		aux.Key = k
+		aux.Value = strconv.Itoa(v) 
+		output = append(output, aux)
+	}
+
+
+	return output
 }
 
 // shuffleFunc will shuffle map job results into different job tasks. It should assert that
