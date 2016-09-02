@@ -3,11 +3,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+
+	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 )
 
 const (
