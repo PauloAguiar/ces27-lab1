@@ -14,13 +14,13 @@ import (
 // it and just pass a reference to reduce jobs so they can go grab it.
 func RunSequential(task *Task) {
 	var (
-		mapCounter int = 0
+		mapCounter int
 		mapResult  []KeyValue
 	)
 
 	log.Print("Running RunSequential...")
 
-	_ = os.Mkdir(REDUCE_PATH, os.ModeDir)
+	_ = os.Mkdir(reducePath, os.ModeDir)
 
 	for v := range task.InputChan {
 		mapResult = task.Map(v)
