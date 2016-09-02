@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"unicode"
 
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 )
@@ -114,60 +115,44 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
-	// numMapFiles = 0
-	// f, err := os.Open(fileName)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// defer f.Close()
-	// eof := false
-	// for !eof {
-	// 	// read one extra bit
-	// 	buf := make([]byte, chunkSize+1)
-	// 	_, err := f.Read(buf)
-	// 	//go back that one extra bit
-	// 	f.Seek(-1, 1)
-	// 	stringRead := string(buf)
-	// 	// we are getting 1 byte more than expected, so
-	// 	// if last non letter or number (here called whitespace) is not the last or second to last character,
-	// 	// then we are splitting a word in half
-	// 	lastRuneIndex := 0
-	// 	secondTolastRuneIndex := 0
-	// 	lastWhitespaceIndex := 0
-	// 	for index, runeValue := range stringRead {
-	// 		secondTolastRuneIndex = lastRuneIndex
-	// 		lastRuneIndex = index
-	// 		if !unicode.IsLetter(runeValue) && !unicode.IsNumber(runeValue) {
-	// 			lastWhitespaceIndex = index
-	// 		}
-	// 	}
-	//
-	// 	lastValidByte := chunkSize
-	// 	if lastWhitespaceIndex != secondTolastRuneIndex || lastWhitespaceIndex != lastRuneIndex {
-	// 		f.Seek(int64(lastWhitespaceIndex-chunkSize), 0)
-	// 		lastValidByte = lastWhitespaceIndex
-	// 	}
-	//
-	// 	writeBuf := buf[:lastValidByte]
-	// 	wfilename := mapFileName(numMapFiles)
-	// 	wf, err := os.Create(wfilename)
-	// 	if err != nil {
-	// 		log.Fatal(err)
-	// 	}
-	// 	defer wf.Close()
-	// 	numMapFiles++
-	//
-	// 	//wf.Write(writeBuf)
-	//
-	// 	if err != nil {
-	// 		if err == io.EOF {
-	// 			eof = true
-	// 		} else {
-	// 			return 0, err
-	// 		}
-	// 	}
-	//
-	// }
+	numMapFiles = 0
+	f, err := os.Open(fileName)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+	for numMapFiles < 10 {
+		// read one extra bit
+		buf := make([]byte, chunkSize+1)
+		bytesRead, _ := f.Read(buf)
+
+		// doing without expeting characters of more than one byte
+		lastValidByteDistanceToEnd := 0
+		for i := 0; i < chunkSize; i++ {
+			c := buf[chunkSize-i]
+			if !unicode.IsLetter(rune(c)) && !unicode.IsNumber(rune(c)) {
+				lastValidByteDistanceToEnd = i
+				break
+			}
+		}
+		// cut the buffer up to the lastValidByte position (excluding it)
+		buf = buf[:chunkSize-lastValidByteDistanceToEnd]
+		//go back in file that one extra byte and whatever we are ignoring
+		f.Seek(-(int64(lastValidByteDistanceToEnd) + 1), 1)
+		wfilename := mapFileName(numMapFiles)
+		wf, err := os.Create(wfilename)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer wf.Close()
+		numMapFiles++
+
+		wf.Write(buf)
+
+		if bytesRead < chunkSize {
+			break
+		}
+	}
 
 	return numMapFiles, nil
 }
