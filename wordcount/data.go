@@ -3,11 +3,14 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pauloaguiar/ces27-lab1/mapreduce"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+	"unicode"
+
+	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 )
 
 const (
@@ -113,7 +116,63 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
+
+	f, err := os.Open(fileName)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+	eof := false
+	for !eof {
+		// read one extra bit
+		buf := make([]byte, chunkSize+1)
+		_, err := f.Read(buf)
+		//go back that one extra bit
+		f.Seek(-1, 1)
+		stringRead := string(buf)
+		// we are getting 1 byte more than expected, so
+		// if last non letter or number (here called whitespace) is not the last or second to last character,
+		// then we are splitting a word in half
+		lastRuneIndex := 0
+		secondTolastRuneIndex := 0
+		lastWhitespaceIndex := 0
+		for index, runeValue := range stringRead {
+			secondTolastRuneIndex = lastRuneIndex
+			lastRuneIndex = index
+			if !unicode.IsLetter(runeValue) && !unicode.IsNumber(runeValue) {
+				lastWhitespaceIndex = index
+			}
+		}
+
+		lastValidByte := chunkSize
+		if lastWhitespaceIndex != secondTolastRuneIndex || lastWhitespaceIndex != lastRuneIndex {
+			f.Seek(int64(lastWhitespaceIndex-chunkSize), 0)
+			lastValidByte = lastWhitespaceIndex
+		}
+
+		writeBuf := buf[:lastValidByte]
+		wfilename := mapFileName(numMapFiles)
+		wf, err := os.Create(wfilename)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer wf.Close()
+		numMapFiles++
+
+		wf.Write(writeBuf)
+
+		if err != nil {
+			if err == io.EOF {
+				eof = true
+			} else {
+				return 0, err
+			}
+		}
+
+	}
+
 	numMapFiles = 0
+
 	return numMapFiles, nil
 }
 
