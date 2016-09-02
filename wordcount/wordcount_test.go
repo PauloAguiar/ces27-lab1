@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"os"
+	"log"
 	"strconv"
 	"testing"
 )
@@ -79,7 +80,7 @@ func TestSplitData(t *testing.T) {
 
 		for i := 0; i < expectedNumFiles; i++ {
 			tmpFileName = mapFileName(i)
-
+			log.Println ("i = ", i)
 			if tmpFile, err = os.Open(tmpFileName); err != nil {
 				deleteTestFile(t, fileName)
 				t.Fatal("Couldn't open '", tmpFileName, "'. Error: ", err)
@@ -110,7 +111,7 @@ func TestMapFunc(t *testing.T) {
 		output      map[string]int
 	}{
 		{true, "empty", []byte(""), make(map[string]int, 0)},
-		{true, "one word", []byte("foo"), map[string]int{"foo": 1}},
+		{true, "one word", []byte("fo0o"), map[string]int{"fo0o": 1}},
 		{true, "two words", []byte("foo foo"), map[string]int{"foo": 2}},
 		{true, "repeated word", []byte("foo refoo foo"), map[string]int{"foo": 2, "refoo": 1}},
 		{true, "invalid character", []byte("foo-bar"), map[string]int{"foo": 1, "bar": 1}},
