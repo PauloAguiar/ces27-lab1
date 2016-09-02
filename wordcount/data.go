@@ -159,7 +159,7 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 		defer wf.Close()
 		numMapFiles++
 
-		wf.Write(writeBuf)
+		//wf.Write(writeBuf)
 
 		if err != nil {
 			if err == io.EOF {
