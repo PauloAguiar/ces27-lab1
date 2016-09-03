@@ -3,10 +3,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+	"unicode"
 
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 )
@@ -114,7 +116,51 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
+	// Open file
+	file, err := os.Open(fileName)
+	if err != nil {
+		return 0, err
+	}
 	numMapFiles = 0
+
+	// Read file by chunks and exclude the last piece of wor to avoid splitting words
+	chunk := make([]byte, chunkSize)
+	for {
+		// Read a chunk
+		n, err := file.Read(chunk)
+		if err == io.EOF {
+			break
+		}
+
+		// find where the last word ends
+		end := chunkSize
+		if n == chunkSize {
+			for i := n - 1; i > 0; i-- {
+				if !unicode.IsLetter(rune(chunk[i])) {
+					end = i
+					break
+				}
+			}
+		} else {
+			end = n
+		}
+
+		// Create and write to output file
+		output, err := os.Create(mapFileName(numMapFiles))
+		if err != nil {
+			return numMapFiles, err
+		}
+		numMapFiles++
+		output.Write(chunk[:end])
+		defer output.Close()
+
+		// Move back cursor if it is not on the end of the file already.
+		if n == chunkSize {
+			file.Seek(int64(end-chunkSize+1), os.SEEK_CUR)
+		}
+	}
+
+	defer file.Close()
 	return numMapFiles, nil
 }
 
