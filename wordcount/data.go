@@ -7,7 +7,9 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"unicode"
 	"path/filepath"
+	//"io"
 )
 
 const (
@@ -89,7 +91,7 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	// 	To check for it use the following code:
 	// 		if bytesRead, err = file.Read(buffer); err != nil {
 	// 			if err == io.EOF {
-	// 				// EOF error
+	// 				// EOF errors
 	// 			} else {
 	//				return 0, err
 	//			}
@@ -113,7 +115,58 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
+	fileInput,_ := os.Open(fileName)
+	
+	//Create (fileoutputname)...
+	fstat,_ := fileInput.Stat()
+	filesize := fstat.Size() + 1
+	buffer := make([]byte, filesize)
 	numMapFiles = 0
+
+	expectedNumFiles := filesize / int64(chunkSize)
+	if filesize%int64(chunkSize) > 0 {
+		expectedNumFiles++
+	}
+	
+	var spoint (int64) = 0
+	var endpoint (int64) = 0
+	fileInput.Read(buffer)
+
+	//Check if chunkSize is gt filesize
+	if (int64(chunkSize) > filesize){
+		fileOutputName := mapFileName(numMapFiles)
+		fileOutput,_ := os.Create(fileOutputName)
+		fileOutput.Write(buffer)
+		fileOutput.Close()
+	} else {
+		// chunkSize is lower than filesize
+		for int(expectedNumFiles) != numMapFiles {
+			endpoint = spoint + int64(chunkSize)
+			if endpoint > filesize {
+				// endpoint passou do filesize ...
+				fileOutputName := mapFileName(numMapFiles)
+				fileOutput,_ := os.Create(fileOutputName)
+				fileOutput.Write(buffer[spoint:])
+				fileOutput.Close()
+				break
+			}
+			// endpoint ainda eh menor q filesize
+			for !(!unicode.IsLetter(rune(buffer[endpoint])) && !unicode.IsNumber(rune(buffer[endpoint]))) {
+				endpoint--
+			}
+			fileOutputName := mapFileName(numMapFiles)
+			fileOutput,_ := os.Create(fileOutputName)
+			fileOutput.Write(buffer[spoint:endpoint])
+			fileOutput.Close()
+			spoint = endpoint 
+			numMapFiles++
+			if (numMapFiles > 20){
+				break
+			}
+		}
+	}
+	fileInput.Close()
+	
 	return numMapFiles, nil
 }
 
