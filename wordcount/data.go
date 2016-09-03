@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 const (
@@ -114,6 +116,67 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	// YOUR CODE GOES HERE //
 	/////////////////////////
 	numMapFiles = 0
+	var(
+		size int
+		bytesWritten int
+		bytesRead int
+		lastIndex int64
+		newName string
+		chunk string
+		f *os.File
+		g *os.File
+		r *strings.Reader
+		)
+	buffer := make([]byte, chunkSize)
+
+	//Open file
+	if f, err = os.Open(fileName); err != nil {
+		return 0, err
+	}
+	defer f.Close()
+	
+	lastIndex = 0
+	err = nil
+	//Reads chunks and writes to new files until EOF
+	for {
+		if lastIndex, err = f.Seek(lastIndex, 0); err != nil {
+			return 0, err
+		}
+		if bytesRead, err = f.Read(buffer); err != nil {
+		 	if err == io.EOF {
+		 		// EOF error; Writes the last portion of the file to a new one and breaks the loop
+		 		newName = mapFileName(numMapFiles)
+				numMapFiles ++
+				if g, err = os.Create(newName); err != nil {
+					return 0, err
+				}
+				g.Write(buffer)
+				g.Close()
+				break
+		 	} else {
+				return 0, err
+			}
+		} else {
+			//Writes the chunk to file without breaking unicode characters
+			newName = mapFileName(numMapFiles)
+			numMapFiles ++
+			if g, err = os.Create(newName); err != nil {
+				return 0, err
+			}
+				//Iterates over the bytes in the chunk, parsing the runes and counting them
+			bytesWritten = 0
+			chunk = string(buffer[0 : bytesRead])
+			r = strings.NewReader(chunk)
+			for _, size, err =  r.ReadRune(); err == nil; _, size, err =  r.ReadRune() {
+				bytesWritten += size
+			}
+				//Write the complete runes to
+			g.Write(buffer[0 : bytesWritten])
+			g.Close()
+		}
+		lastIndex += int64(bytesWritten)
+	}
+
 	return numMapFiles, nil
 }
 
