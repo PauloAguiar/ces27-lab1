@@ -136,7 +136,8 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 		end := chunkSize
 		if n == chunkSize {
 			for i := n - 1; i > 0; i-- {
-				if !unicode.IsLetter(rune(chunk[i])) {
+				r := rune(chunk[i])
+				if !unicode.IsLetter(r) && !unicode.IsNumber(r) {
 					end = i
 					break
 				}

@@ -35,7 +35,7 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 
 	// Split using custom function, split on all characters that are not letters
 	words := strings.FieldsFunc(inputS, func(r rune) bool {
-		return !unicode.IsLetter(r)
+		return !unicode.IsLetter(r) && !unicode.IsNumber(r)
 	})
 
 	// make array of mapreduce.KeyValue to return
