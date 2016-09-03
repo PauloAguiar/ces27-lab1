@@ -56,34 +56,24 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 // reduceFunc is called for each merged array of KeyValue resulted from all map jobs.
 // It should return a similar array that summarizes all similar keys in the input.
 func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
-	// 	Maybe it's easier if we have an auxiliary structure? Which one?
-	//
-	// 	You can check if a map have a key as following:
-	// 		if _, ok := myMap[myKey]; !ok {
-	//			// Don't have the key
-	//		}
-	//
-	// 	Reduce will receive KeyValue pairs that have string values, you may need
-	// 	convert those values to int before being able to use it in operations.
-	//  	package strconv: func Atoi(s string) (int, error)
-	//
-	// 	It's also possible to receive a non-numeric value (i.e. "+"). You can check the
-	// 	error returned by Atoi and if it's not 'nil', use 1 as the value.
 
-	
-
+	//We store the strings as keys and the count as values so they can be easily accessed
 	aux := make(map[string]int)
 
 	for _, v := range input {
+		//If the value is non-numeric, consider it 1
 		if i, e := strconv.Atoi(v.Value); e != nil {
+			//If the count for that word does not exist, it is created and set to 0
 			aux[v.Key]++
 		} else {
+			//If the result is numeric, add it to the current count
 			aux[v.Key] += i
 		}
 	}
 
 	result = make([]mapreduce.KeyValue, 0)
 
+	//Converts all the map entries to KeyValue entries in result
 	for k, v := range aux {
 		result = append(result, mapreduce.KeyValue{k, strconv.Itoa(v)})
 	}
