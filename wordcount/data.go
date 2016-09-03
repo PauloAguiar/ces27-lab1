@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"io"
 )
 
 const (
@@ -81,7 +82,12 @@ func fanOutData() (output chan []mapreduce.KeyValue, done chan bool) {
 
 	return output, done
 }
-
+//funcao auxiliar tirada do site https://gobyexample.com/writing-files
+func check(e error) {
+    if e != nil {
+        panic(e)
+    }
+}
 // Reads input file and split it into files smaller than chunkSize.
 // CUTCUTCUTCUTCUT!
 func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
@@ -113,7 +119,55 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
+	//https://gobyexample.com/reading-files
+	//https://gobyexample.com/writing-files
+	//ajudou muito esse site!
+	//temos que criar um buffer de tamanho "chunkSize"
+	//depois vamos ler o arquivo de nome "fileName"
+	//aí vem o loop:
+	//vamos ler o arquivo de entrada, colocando no buffer até enche-lo
+	//depois criamos um novo arquivo com o nome dado pela funçao
+	//depois escrevemos o que ha no buffer no arquivo
 	numMapFiles = 0
+	//o buffer vai ser um slice de tamanho chunkSize
+	buffer := make([]byte, chunkSize)
+	//vamos abrir o arquivo de entrada
+	entrada, err := os.Open(fileName)
+	check(err)
+	//agora vamos ler os bytes do arquivo e criar os arquivos de saida
+	//o for deve começar lendo, verificar se o buffer esta vazio e depois tratar o EOF
+	for bytesRead, err := entrada.Read(buffer); bytesRead != 0 ; bytesRead, err = entrada.Read(buffer){
+	//nao vejo o erro na sentença do for, pois se o arquivo for menor que o buffer,
+	//daria erro e nao entraria no for. Quero que, mesmo lançando o erro, ele entre no loop para criar a saida
+	//ele só sai do loop quando nao consegue ler mais nada!
+		if err != nil {
+			if err != io.EOF {
+				// nao é EOF error
+				return 0, err				
+			} else {
+				nomeSaida := mapFileName(numMapFiles)
+				saida, err1 := os.Create(nomeSaida)
+				check(err1)
+				//agora escrevemos o buffer na saida
+				_, err2 := saida.Write(buffer)
+				check(err2)
+				numMapFiles++
+				saida.Close()
+			}
+		} else {
+			nomeSaida := mapFileName(numMapFiles)
+			saida, err1 := os.Create(nomeSaida)
+			check(err1)
+			//agora escrevemos o buffer na saida
+			_, err2 := saida.Write(buffer)
+			check(err2)
+			numMapFiles++
+			saida.Close()
+		}
+	}
+	//agora fechamos todos os arquivos
+	entrada.Close()
+
 	return numMapFiles, nil
 }
 
