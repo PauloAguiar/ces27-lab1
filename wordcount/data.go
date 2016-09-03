@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"io"
+	"unicode"
 )
 
 const (
@@ -113,30 +114,48 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
-	f, err := os.Open(fileName)
-	defer f.Close()
+    f, err := os.Open(fileName)
+    defer f.Close()
     if err != nil {
-       	panic(err)
+        panic(err)
     }
-    var buffer []byte
+    var buffer, buffer_aux []byte
+    var bytesRead int
+    leitura := 0
     //var bytesRead int
     numMapFiles = 0
+    buffer_aux = make([]byte, chunkSize)
     for {
-    	buffer = make([]byte, chunkSize)
-    	if _, err = f.Read(buffer); err != nil {
-    		if err == io.EOF {
-    			return numMapFiles, nil
-    		} else {
-    			return 0, err
-    		}
-    	}
+        if bytesRead, err = f.Read(buffer_aux); err != nil {
+            if err == io.EOF {
+                return numMapFiles, nil
+            } else {
+                return 0, err
+            }
+        }
+        if bytesRead < chunkSize {
+            buffer = buffer_aux[:bytesRead]
+            leitura += bytesRead
+        } else {
+            delimitador := len(buffer_aux) - 1
+            for ; delimitador >= 0; delimitador-- {
+                if !unicode.IsLetter(rune(buffer_aux[delimitador])) && !unicode.IsNumber(rune(buffer_aux[delimitador])) {
+                    break
+                }
+            }
+            leitura += delimitador + 1
+            
+            buffer = buffer_aux[0:delimitador+1]    
+        }
+        
 	    err := ioutil.WriteFile(mapFileName(numMapFiles), buffer, os.ModeAppend)
-	    if err != nil {
-       		panic(err)
-    	}
-    	numMapFiles++;
+        if err != nil {
+            panic(err)
+        }
+        f.Seek(int64(leitura), 0)
+        numMapFiles++;
     }
-	return numMapFiles, nil
+    return numMapFiles, nil
 }
 
 func mapFileName(id int) string {
