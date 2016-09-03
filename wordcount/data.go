@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"unicode"
 )
 
 const (
@@ -119,8 +120,10 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	var(
 		size int
 		bytesWritten int
+		auxCont int
 		bytesRead int
 		lastIndex int64
+		c rune;
 		newName string
 		chunk string
 		f *os.File
@@ -157,7 +160,7 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 				return 0, err
 			}
 		} else {
-			//Writes the chunk to file without breaking unicode characters
+			//Writes the chunk to file without breaking word
 			newName = mapFileName(numMapFiles)
 			numMapFiles ++
 			if g, err = os.Create(newName); err != nil {
@@ -167,14 +170,18 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 			bytesWritten = 0
 			chunk = string(buffer[0 : bytesRead])
 			r = strings.NewReader(chunk)
-			for _, size, err =  r.ReadRune(); err == nil; _, size, err =  r.ReadRune() {
+			for c, size, err =  r.ReadRune(); err == nil; c, size, err =  r.ReadRune() {
 				bytesWritten += size
+					//Stores the offset of the last delimiter
+				if !unicode.IsLetter(c) && !unicode.IsNumber(c) {
+					auxCont = bytesWritten;
+				}
 			}
 				//Write the complete runes to
-			g.Write(buffer[0 : bytesWritten])
+			g.Write(buffer[0 : auxCont])
 			g.Close()
 		}
-		lastIndex += int64(bytesWritten)
+		lastIndex += int64(auxCont)
 	}
 
 	return numMapFiles, nil
