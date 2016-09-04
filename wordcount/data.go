@@ -113,8 +113,25 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
+	//Based on https://www.socketloop.com/tutorials/golang-how-to-split-or-chunking-a-file-to-smaller-pieces
 	numMapFiles = 0
-	return numMapFiles, nil
+	var data []byte
+	wholeString, err := ioutil.ReadFile(fileName)
+	for i:= 0; i<len(wholeString); i++ {
+		newFileName := mapFileName(numMapFiles)
+		numMapFiles++
+		if chunkSize + i > len(wholeString){
+			data = wholeString[i:len(wholeString)]
+		} else{
+			data = wholeString[i:chunkSize + i]
+		}
+		err := ioutil.WriteFile(newFileName, data, 0644) //0644 adds permission to write a file
+		if err != nil{
+			panic(err)
+		}
+		i = chunkSize * numMapFiles
+	}
+	return numMapFiles-1, err
 }
 
 func mapFileName(id int) string {
