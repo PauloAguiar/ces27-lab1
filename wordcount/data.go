@@ -8,6 +8,9 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"unicode/utf8"
+	"unicode"
+	"errors"
 )
 
 const (
@@ -85,35 +88,106 @@ func fanOutData() (output chan []mapreduce.KeyValue, done chan bool) {
 // Reads input file and split it into files smaller than chunkSize.
 // CUTCUTCUTCUTCUT!
 func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
-	// 	When you are reading a file and the end-of-file is found, an error is returned.
-	// 	To check for it use the following code:
-	// 		if bytesRead, err = file.Read(buffer); err != nil {
-	// 			if err == io.EOF {
-	// 				// EOF error
-	// 			} else {
-	//				return 0, err
-	//			}
-	// 		}
-	//
-	// 	Use the mapFileName function to generate the name of the files!
-	//
-	//	Go strings are encoded using UTF-8.
-	// 	This means that a character can't be handled as a byte. There's no char type.
-	// 	The type that hold's a character is called a 'rune' and it can have 1-4 bytes (UTF-8).
-	//	Because of that, it's not possible to index access characters in a string the way it's done in C.
-	//		str[3] will return the 3rd byte, not the 3rd rune in str, and this byte may not even be a valid
-	//		rune by itself.
-	//		Rune handling should be done using the package 'strings' (https://golang.org/pkg/strings/)
-	//
-	//  For more information visit: https://blog.golang.org/strings
-	//
-	//	It's also important to notice that errors can be handled here or they can be passed down
-	// 	to be handled by the caller as the second parameter of the return.
+	var(
+		fileBuffer []byte //Buffer that stores everything from the file
+		file *os.File //File that we create to store the pieces
+		fileSize int //We keep track of the file size in bytes
+	)
 
-	/////////////////////////
-	// YOUR CODE GOES HERE //
-	/////////////////////////
+	//Attempts to open the input, if not successful, "throws" the erro
+	if fileBuffer, err = ioutil.ReadFile(fileName); err != nil {
+		return 0, err
+	}
+
+
 	numMapFiles = 0
+	word := make([]byte, 0)
+
+	//Creates the first split file, "throws" an error if any
+	if file, err = os.Create(mapFileName(numMapFiles)); err != nil {
+		return 0, err
+	}
+	numMapFiles++
+	fileSize = 0
+
+	//Iterates through all the runes in the input
+	for len(fileBuffer) > 0 {
+		r, size := utf8.DecodeRune(fileBuffer)
+
+		//If the character is somehow larger than the chunk size, return an error
+		if size > chunkSize {
+			return 0, errors.New("Character size larger than chunk size")
+		}
+
+		/*We attempt to assemble an entire word before adding it to the file as not to
+		cut a word in half during the process. If another character is found, adds it 
+		directly to the file */
+
+		if(unicode.IsLetter(r) || unicode.IsNumber(r)) {
+			word = append(word, fileBuffer[:size]...)
+		} else {
+			//If another character is encountered, first attempts do add the finished
+			//word to the file
+			if len(word) > 0 {
+				//If a word that is bigger than the chunk size is found, we cant handle it
+				if len(word) > chunkSize {
+					return 0, errors.New("Word larger than chunk size")
+				} 
+				//If adding the word exceed the chunk size, starts a new file
+				if fileSize + len(word) > chunkSize {
+					file.Close()
+					if file, err = os.Create(mapFileName(numMapFiles)); err != nil {
+						return numMapFiles, err
+					}
+					numMapFiles++
+					fileSize = 0
+				}
+				if _, err = file.Write(word); err != nil {
+					return numMapFiles, err
+				}
+				fileSize += len(word)
+				//Cleans the word buffer
+				word = word[:0]
+			}
+			//Now attempts to add the next character to the file
+			//If it passes the cuhunk size, starts a new file
+			if fileSize + size > chunkSize {
+				file.Close()
+				if file, err = os.Create(mapFileName(numMapFiles)); err != nil {
+					return numMapFiles, err
+				}
+				numMapFiles++
+				fileSize = 0
+			}
+			if _, err = file.Write(fileBuffer[:size]); err != nil {
+				return numMapFiles, err
+			}
+			fileSize += size
+		}
+		//Continue to the next rune
+		fileBuffer = fileBuffer[size:]
+	}
+
+	//If there's still a word in the buffer, add the word to the last file
+	//Or creates a new file if there's no space
+	if len(word) > 0 {
+		if len(word) > chunkSize {
+			return 0, errors.New("Word larger than chunk size")
+		}
+		if fileSize + len(word) > chunkSize {
+			file.Close()
+			if file, err = os.Create(mapFileName(numMapFiles)); err != nil {
+				return numMapFiles, err
+			}
+			numMapFiles++
+		}
+		if _, err = file.Write(word); err != nil {
+			return numMapFiles, err
+		}
+	}
+
+	file.Close()
+
 	return numMapFiles, nil
 }
 
