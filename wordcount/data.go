@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
+	"unicode"
+	"errors"
 )
 
 const (
@@ -113,7 +116,91 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
+
+	// This function DOES NOT support Unicode characters in the input file, only ASCII
+	// If the input file contains Unicode characters, they may be broken and become invalid
+
+	// Used this as a reference for file handling: http://www.devdungeon.com/content/working-files-go
+
+	var (
+		readError error
+		cutOffPosition int
+	)
+
 	numMapFiles = 0
+
+	file, err := os.Open(fileName)
+	if err != nil {
+    	log.Fatal(err)
+    	return 0, err
+	}
+
+	// This buffer stores the bytes that will be written to map files
+    bufferToMapFiles := make([]byte, 0)
+    bytesInBuffer := 0
+
+    // Keep reading while end-of-file is not found
+    for readError != io.EOF {
+
+    	// Read from file the amount of bytes necessary to complete the buffer
+    	// The buffer contains (chunkSize + 1) bytes, so that if the last byte is a separator, 
+    	// then the whole chunk can be written to file
+    	// In other words, the last byte works as a "lookahead byte"
+        bytesFromFile := make([]byte, chunkSize + 1 - bytesInBuffer)
+        _, readError = file.Read(bytesFromFile)
+        if readError != nil && readError != io.EOF {
+        	return numMapFiles, readError
+        }
+
+        // Append bytes read from file to buffer
+        bufferToMapFiles = append(bufferToMapFiles, bytesFromFile...)
+
+        // Look for a separator at the end of the buffer
+        // When a separator is found, all the bytes up to it can be written to a file, 
+        // ensuring that the file doesn't contain broken words
+        cutOffPosition = chunkSize
+        for cutOffPosition > 0 && 
+        	(unicode.IsLetter(rune(bufferToMapFiles[cutOffPosition])) || 
+			 unicode.IsNumber(rune(bufferToMapFiles[cutOffPosition]))) {
+
+            cutOffPosition--
+        }
+
+        // Edge case: If cutoff position reaches zero, then there is a word larger than chunkSize, 
+        // therefore it is impossible to properly split the input file
+        if cutOffPosition == 0 {
+            err := errors.New("Error: word larger than chunkSize")
+            log.Fatal(err)
+            return numMapFiles, err
+        }
+
+        // If buffer is not empty (i.e. it doesn't contain only zero bytes), then write its content up to cutoff position
+        // It suffices to check only the first byte in the buffer
+        // This check prevents an additional empty file to be created
+        if bufferToMapFiles[0] != 0 {
+            
+            // Prevent trailing zero bytes to be unnecessarily written to file
+            for bufferToMapFiles[cutOffPosition-1] == 0 {
+                cutOffPosition--
+            }
+
+            // Write buffer content up to cutoff position in mode 0666 (read/write)
+            if err := ioutil.WriteFile(mapFileName(numMapFiles), bufferToMapFiles[:cutOffPosition], 0666); err != nil {
+                log.Fatal(err)
+                return numMapFiles, err
+            } 
+
+            // Keeps in buffer whatever couldn't be written to file (e.g. a piece of a broken word or a "lookahead byte")
+            bufferToMapFiles = bufferToMapFiles[cutOffPosition:]
+            bytesInBuffer = len(bufferToMapFiles)
+
+            numMapFiles++
+        }
+    }
+
+    file.Close()
+
+    // If this point was reached, then no errors occurred when handling files
 	return numMapFiles, nil
 }
 
