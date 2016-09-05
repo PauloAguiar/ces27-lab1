@@ -1,8 +1,12 @@
 package main
 
 import (
-	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"hash/fnv"
+	"strconv"
+	"strings"
+	"unicode"
+
+	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 )
 
 // mapFunc is called for each array of bytes read from the splitted files. For wordcount
@@ -25,7 +29,23 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
-	result = make([]mapreduce.KeyValue, 0)
+
+	// All characters to lower case
+	inputS := strings.ToLower(string(input))
+
+	// Split using custom function, split on all characters that are not letters
+	words := strings.FieldsFunc(inputS, func(r rune) bool {
+		return !unicode.IsLetter(r) && !unicode.IsNumber(r)
+	})
+
+	// make array of mapreduce.KeyValue to return
+	result = make([]mapreduce.KeyValue, len(words))
+
+	// iterate through the words and insert into the return array
+	for i, w := range words {
+		result[i] = mapreduce.KeyValue{Key: w, Value: "1"}
+	}
+
 	return result
 }
 
@@ -49,7 +69,29 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
-	result = make([]mapreduce.KeyValue, 0)
+
+	// create map to count ocurrencies
+	count := make(map[string]int)
+
+	// iterate through the input and accumulate ocurrencies in the map
+	for _, pair := range input {
+
+		// convert value to integer
+		vInt, err := strconv.Atoi(pair.Value)
+
+		// if value is non-numeric, use 1
+		if err != nil {
+			vInt = 1
+		}
+
+		// accumulate value in the map
+		count[pair.Key] += vInt
+	}
+
+	// copy key-value pair from the map to the return array
+	for k, v := range count {
+		result = append(result, mapreduce.KeyValue{Key: k, Value: strconv.Itoa(v)})
+	}
 	return result
 }
 

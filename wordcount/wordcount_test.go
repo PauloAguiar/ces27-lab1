@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"os"
 	"strconv"
 	"testing"
+
+	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 )
 
 func createTestFile(t *testing.T, fileName string, content string) int {
@@ -148,7 +149,7 @@ func TestMapFunc(t *testing.T) {
 			} else {
 				value, err := strconv.Atoi(kv.Value)
 				if err != nil {
-					combined[kv.Key] += 1
+					combined[kv.Key]++
 				} else {
 					combined[kv.Key] += value
 				}
