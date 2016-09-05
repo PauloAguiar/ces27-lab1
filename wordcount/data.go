@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"math"
 )
 
 const (
@@ -85,35 +86,79 @@ func fanOutData() (output chan []mapreduce.KeyValue, done chan bool) {
 // Reads input file and split it into files smaller than chunkSize.
 // CUTCUTCUTCUTCUT!
 func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
-	// 	When you are reading a file and the end-of-file is found, an error is returned.
-	// 	To check for it use the following code:
-	// 		if bytesRead, err = file.Read(buffer); err != nil {
-	// 			if err == io.EOF {
-	// 				// EOF error
-	// 			} else {
-	//				return 0, err
-	//			}
-	// 		}
-	//
-	// 	Use the mapFileName function to generate the name of the files!
-	//
-	//	Go strings are encoded using UTF-8.
-	// 	This means that a character can't be handled as a byte. There's no char type.
-	// 	The type that hold's a character is called a 'rune' and it can have 1-4 bytes (UTF-8).
-	//	Because of that, it's not possible to index access characters in a string the way it's done in C.
-	//		str[3] will return the 3rd byte, not the 3rd rune in str, and this byte may not even be a valid
-	//		rune by itself.
-	//		Rune handling should be done using the package 'strings' (https://golang.org/pkg/strings/)
-	//
-	//  For more information visit: https://blog.golang.org/strings
-	//
-	//	It's also important to notice that errors can be handled here or they can be passed down
-	// 	to be handled by the caller as the second parameter of the return.
 
-	/////////////////////////
-	// YOUR CODE GOES HERE //
-	/////////////////////////
-	numMapFiles = 0
+	//Abrir o arquivo de entrada descrito como fileName
+	inputFile, err := os.Open(fileName)
+	if err != nil {
+		log.Println("Couldn't open file '", fileName, "'. Error: ", err)
+	}
+
+	//Slice de bytes utilizado para guardar os valores do arquivo
+	//com a capacidade dada pelo chunkSize
+	content := make([]byte, chunkSize)
+
+	//Pegando as informacoes do arquivo de entrada
+	infoInputFile, err := inputFile.Stat()
+	if err != nil {
+		log.Println("Don't have stats for the file '", fileName, "'. Error: ", err)
+	}
+
+	//Quantidade de arquivos a serem gerados
+	numMapFiles = int(math.Ceil(float64(infoInputFile.Size())/float64(chunkSize)))
+
+	//Resto de bytes remanescentes para o ultimo arquivo
+	//caso mod != 0
+	mod := infoInputFile.Size() % int64(chunkSize)
+
+	//Loop para a geracao de arquivos
+	for i := 0; i < numMapFiles; i+=1 {
+
+		//Caso seja o ultimo arquivo a ser gerado e
+		//o ultimo arquivo nao contem exatamente chunkSize bytes
+		if i == numMapFiles - 1 && mod != 0 {
+
+			//Atribuir novo slice de bytes com o tamanho remanescente
+			content = make([]byte, mod)
+
+			//Ler o conteudo do arquivo e gravar em content
+			inputFile.Read(content)
+
+			//Gerar o nome do arquivo e o proprio arquivo
+			nameOutputfile := mapFileName(int(i))
+			outputFile, err := os.Create(nameOutputfile)
+			if err != nil {
+				log.Println("Can't create file '", nameOutputfile)
+			}
+
+			//Escrevendo conteudo de content no novo arquivo, 
+			//sincronizando-o e fechando-o
+			outputFile.Write(content)
+			outputFile.Sync()
+			outputFile.Close()
+
+		} else { //Caso contrario
+
+			//Ler o conteudo do arquivo e gravar em content
+			inputFile.Read(content)
+
+			//Gerar o nome do arquivo e o proprio arquivo
+			nameOutputfile := mapFileName(int(i))
+			outputFile, err := os.Create(nameOutputfile)
+			if err != nil {
+				log.Println("Can't create file '", nameOutputfile)
+			}
+
+			//Escrevendo conteudo de content no novo arquivo, 
+			//sincronizando-o e fechando-o
+			outputFile.Write(content)
+			outputFile.Sync()
+			outputFile.Close()
+		}
+	}
+	
+	//Finalizando a leitura do arquivo de entrada
+	inputFile.Close()
+
 	return numMapFiles, nil
 }
 
