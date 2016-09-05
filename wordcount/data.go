@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"io"
 	"path/filepath"
 )
 
@@ -113,7 +114,60 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
+	file, err := os.Open(fileName)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	buffer := make([]byte, chunkSize)
+	nextCarac := make([]byte, 1)
 	numMapFiles = 0
+	err = nil
+	nextInitial := 0
+
+	// fmt.Println("******CASO DE TESTE******")
+	for err != io.EOF {
+		bytesRead , err := file.ReadAt(buffer, int64(nextInitial))
+		if err != nil {
+			if err == io.EOF && bytesRead > 0 {
+				// EOF error
+				newFile, _ := os.Create(mapFileName(numMapFiles))
+				last := buffer[:bytesRead]
+				// fmt.Printf("%v %v \n\n", bytesRead, len(last))
+				// fmt.Println("Last: " + string(last) + "\n")
+				_ , _ = newFile.Write(last)
+				numMapFiles++
+				newFile.Close()
+				break
+			} else if err == io.EOF {
+				break
+			} else {
+				return 0, err
+			}
+		}
+		newFile, _ := os.Create(mapFileName(numMapFiles))
+		_ , error := file.ReadAt(nextCarac, int64(nextInitial + chunkSize))
+		aux := chunkSize - 1
+		if (buffer[aux] != 32 && error != io.EOF) {
+			i := aux
+			for i = aux; buffer[i] != 32; i-- {
+				// Achar o quanto eu tiro
+			}
+			nextInitial = nextInitial + i + 1
+			littleBuffer := buffer[:i+1]
+			// fmt.Println("LittleBuffer: " + string(littleBuffer))
+			_ , _ = newFile.Write(littleBuffer)
+			numMapFiles++
+		} else {
+			nextInitial = nextInitial + chunkSize
+			// fmt.Println("Buffer: " + string(buffer))
+			_ , _ = newFile.Write(buffer)
+			numMapFiles++
+		}
+		newFile.Close()
+	}
+
 	return numMapFiles, nil
 }
 

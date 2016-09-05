@@ -1,6 +1,11 @@
 package main
 
 import (
+	//"fmt"
+	"strings"
+	"unicode"
+	"strconv"
+	//"bytes"
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"hash/fnv"
 )
@@ -25,7 +30,28 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
+	var words []string
+	var str string
+
+	myFunc := func(r rune) (bool) {
+		if (!unicode.IsLetter(r) && !unicode.IsNumber(r)) {
+			return true
+		}
+		return false
+	}
+
+	str = string(input)
+	words = strings.FieldsFunc(str, myFunc)
 	result = make([]mapreduce.KeyValue, 0)
+
+	for i := 0; i < len(words); i++ {
+		words[i] = strings.ToLower(words[i])
+		aux := mapreduce.KeyValue {words[i], "1"}
+		
+		result = append(result, aux)
+
+	}
+	
 	return result
 }
 
@@ -49,7 +75,34 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
+	auxmap := make(map[string]int)
 	result = make([]mapreduce.KeyValue, 0)
+
+	for i := 0; i < len(input) ; i++ {
+		if _, ok := auxmap[input[i].Key]; !ok {
+			// Don't have the key
+			auxval, err := strconv.Atoi(input[i].Value)
+			if err != nil {
+					auxmap[input[i].Key] = 1
+				} else {
+					auxmap[input[i].Key] = auxval
+			}
+		} else {
+			addition, err := strconv.Atoi(input[i].Value)
+			if err != nil {
+				auxmap[input[i].Key] = auxmap[input[i].Key] + 1
+			} else {
+				auxmap[input[i].Key] = auxmap[input[i].Key] + addition
+			}
+		}
+	}
+
+	for key, value := range auxmap {
+		auxvalue := strconv.Itoa(value)
+		auxKeyValue := mapreduce.KeyValue {key, auxvalue}
+		result = append(result, auxKeyValue)
+	}
+	
 	return result
 }
 
