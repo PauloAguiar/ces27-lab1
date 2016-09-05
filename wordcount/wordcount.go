@@ -105,13 +105,13 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 
 		// If it's a non-numeric value, count as 1 occurrence
 		// This considers that all possible non-numeric values are equivalent 
-		// (e.g. "-" or "+" have the same meaning as values)
+		// (e.g. "-" or "+" have the same meaning when used as values)
 		} else {
 			auxiliaryMap[keyValuePair.Key] += 1
 		}
 	}
 
-	// Convert the key-value pairs in auxiliary map to the output format (array of mapreduce.KeyValue)
+	// Convert the key-value pairs in auxiliary map to the output format (array of mapreduce.KeyValue structs)
 	for key, value := range auxiliaryMap {
 		result = append(result, mapreduce.KeyValue{key, strconv.Itoa(value)})
 	}
