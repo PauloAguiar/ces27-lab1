@@ -3,6 +3,11 @@ package main
 import (
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"hash/fnv"
+	"unicode"
+	"strings"
+	"sort"
+	"strconv"
+	
 )
 
 // mapFunc is called for each array of bytes read from the splitted files. For wordcount
@@ -25,7 +30,31 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
-	result = make([]mapreduce.KeyValue, 0)
+	var n = len(input)
+	var s = make([]string, n)
+	var k = 0
+	var i = 0
+
+	for i < n {
+		for i < n && !unicode.IsLetter(rune(input[i])) && !unicode.IsNumber(rune(input[i])) {
+			i++
+		}
+		if i >= n {
+			break
+		}
+		var j = i
+		for j < n && !(!unicode.IsLetter(rune(input[j])) && !unicode.IsNumber(rune(input[j]))) {
+			j++
+		}
+		s[k] = strings.ToLower(string(input[i:j]))
+		i = j
+		k++
+	}
+	result = make([]mapreduce.KeyValue, k)
+	for i := 0; i < k; i++ {
+		result[i].Key = s[i]
+		result[i].Value = "+"
+	}
 	return result
 }
 
@@ -49,7 +78,37 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
-	result = make([]mapreduce.KeyValue, 0)
+	var myMap = make(map[string]int)
+	
+	for _, kv := range input {
+		x, err := strconv.Atoi(kv.Value)
+		if _, ok := myMap[kv.Key]; !ok {
+			if err != nil{
+				myMap[kv.Key] = 1
+			} else{
+				myMap[kv.Key] = x
+			}
+		} else{
+			if err != nil{
+				myMap[kv.Key]++
+			} else{
+				myMap[kv.Key] += x
+			}
+		}
+	}
+	i := 0
+	var n = len(myMap)
+	aux := make([]string, n)
+	for k, _ := range myMap {
+		aux[i] = k
+		i++
+	}
+	sort.Strings(aux)
+	result = make([]mapreduce.KeyValue, n)
+	for i = 0; i < n; i++ {
+		result[i].Key = aux[i]
+		result[i].Value = strconv.Itoa(myMap[aux[i]])
+	} 
 	return result
 }
 
