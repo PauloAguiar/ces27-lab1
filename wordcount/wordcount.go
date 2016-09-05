@@ -1,6 +1,10 @@
 package main
 
 import (
+	"strings"
+	"unicode"
+	"strconv"
+	//"fmt"
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"hash/fnv"
 )
@@ -23,9 +27,33 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	//			strconv.Atoi("5") // = 5
 
 	/////////////////////////
-	// YOUR CODE GOES HERE //
-	/////////////////////////
+	//fmt.Printf("Input Length: %v\n", len(input))
+
+	var (
+		//n int
+		s string
+		p mapreduce.KeyValue
+		chaves []string
+	)
+	//n = bytes.Index(input, []byte(0))
+	s = string(input)
+
+	//s = strings.ToLower(s)
+
 	result = make([]mapreduce.KeyValue, 0)
+	//p = &mapreduce.KeyValue
+
+	f := func(c rune) bool {
+		return !unicode.IsLetter(c) && !unicode.IsNumber(c)
+	}
+	chaves = strings.FieldsFunc(s, f)
+	for v := 0; v < len(chaves); v++ {
+		p.Key = strings.ToLower(chaves[v])
+		p.Value = strconv.Itoa(1)
+		result = append(result, p)
+	}
+	/////////////////////////
+	//result = make([]mapreduce.KeyValue, 0)
 	return result
 }
 
@@ -47,9 +75,39 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 	// 	error returned by Atoi and if it's not 'nil', use 1 as the value.
 
 	/////////////////////////
-	// YOUR CODE GOES HERE //
-	/////////////////////////
+	var (
+		combined  map[string]int
+		p mapreduce.KeyValue
+	)
+
+	combined = make(map[string]int, 0)
+
+	for _, kv := range input {
+		if _, ok := combined[kv.Key]; !ok {
+			value, err := strconv.Atoi(kv.Value)
+			if err != nil {
+				combined[kv.Key] = 1
+			} else {
+				combined[kv.Key] = value
+			}
+
+		} else {
+			value, err := strconv.Atoi(kv.Value)
+			if err != nil {
+				combined[kv.Key] += 1
+			} else {
+				combined[kv.Key] += value
+			}
+		}
+	}
 	result = make([]mapreduce.KeyValue, 0)
+	for k, v := range combined {
+		p.Key = k 
+		p.Value = strconv.Itoa(v)
+		result = append(result, p)
+	}
+
+	/////////////////////////
 	return result
 }
 
