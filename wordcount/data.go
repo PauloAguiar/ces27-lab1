@@ -3,11 +3,13 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+	"unicode"
+
+	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 )
 
 const (
@@ -114,6 +116,44 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	// YOUR CODE GOES HERE //
 	/////////////////////////
 	numMapFiles = 0
+	f, err := os.Open(fileName)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+	for numMapFiles < 10 {
+		// read one extra bit
+		buf := make([]byte, chunkSize+1)
+		bytesRead, _ := f.Read(buf)
+
+		// doing without expeting characters of more than one byte
+		lastValidByteDistanceToEnd := 0
+		for i := 0; i < chunkSize; i++ {
+			c := buf[chunkSize-i]
+			if !unicode.IsLetter(rune(c)) && !unicode.IsNumber(rune(c)) {
+				lastValidByteDistanceToEnd = i
+				break
+			}
+		}
+		// cut the buffer up to the lastValidByte position (excluding it)
+		buf = buf[:chunkSize-lastValidByteDistanceToEnd]
+		//go back in file that one extra byte and whatever we are ignoring
+		f.Seek(-(int64(lastValidByteDistanceToEnd) + 1), 1)
+		wfilename := mapFileName(numMapFiles)
+		wf, err := os.Create(wfilename)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer wf.Close()
+		numMapFiles++
+
+		wf.Write(buf)
+
+		if bytesRead < chunkSize {
+			break
+		}
+	}
+
 	return numMapFiles, nil
 }
 
