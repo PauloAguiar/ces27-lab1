@@ -8,6 +8,8 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"unicode"
+	"io"
 )
 
 const (
@@ -114,6 +116,51 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	// YOUR CODE GOES HERE //
 	/////////////////////////
 	numMapFiles = 0
+	
+	file,_ := os.Open(fileName)
+	defer file.Close()
+	fileStat,_ := file.Stat()
+	inputBuffer := make([]byte, fileStat.Size()+1)
+	
+	if _, err := file.Read(inputBuffer); err != nil {
+		if err == io.EOF {
+	 		// EOF error
+	 	} else {
+			return 0, err
+		}
+	}
+	
+	
+	initPos := 0
+	finalPos := len(inputBuffer)
+	
+	for initPos < finalPos {
+		cutPos := initPos + chunkSize
+		
+		if cutPos > finalPos {
+			cutPos = (finalPos-1)
+		}else{
+			for unicode.IsLetter(rune(inputBuffer[cutPos])) || unicode.IsNumber(rune(inputBuffer[cutPos])) {
+				cutPos--
+			}
+		}
+		
+		fileName_ := mapFileName(numMapFiles)
+		output, err :=  os.Create(fileName_)
+		if err != nil{
+			log.Fatal(err)
+		}
+		
+		if (initPos != cutPos){
+			output.Write(inputBuffer[initPos:cutPos])
+		}else{
+			output.Write(inputBuffer[initPos:initPos+1])
+		}
+		
+		output.Close()
+		numMapFiles++
+		initPos = cutPos+1
+	}
 	return numMapFiles, nil
 }
 
