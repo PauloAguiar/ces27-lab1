@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"io"
 )
 
 const (
@@ -110,10 +111,41 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	//	It's also important to notice that errors can be handled here or they can be passed down
 	// 	to be handled by the caller as the second parameter of the return.
 
-	/////////////////////////
-	// YOUR CODE GOES HERE //
-	/////////////////////////
 	numMapFiles = 0
+
+	// open and close files like in
+	// http://stackoverflow.com/questions/1821811/how-to-read-write-from-to-file
+	fi, err := os.Open(fileName)
+	if err != nil {
+		return numMapFiles, err
+	}
+
+	defer fi.Close()
+
+	// read a chunk with the assigned size
+	buffer := make([]byte, chunkSize)
+	for {
+		// read a chunk
+		bytesRead, err := fi.Read(buffer)
+		if err != nil && err != io.EOF {
+			break
+		}
+		if bytesRead == 0 {
+			break // file has ended
+		}
+
+		// open output file
+		fo, err := os.Create(mapFileName(numMapFiles))
+		defer fo.Close()
+		numMapFiles += 1
+		if err != nil {
+			break
+		}
+		if _, err := fo.Write(buffer[:bytesRead]); err != nil {
+			break
+		}
+	}
+
 	return numMapFiles, nil
 }
 

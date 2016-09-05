@@ -7,7 +7,7 @@ import (
 
 // RunSequential will ensure that map and reduce function runs in
 // a single-core linearly. The Task is passed from the calling package
-// and should contains the definitions for all the required functions
+// and should contain the definitions for all the required functions
 // and parameters.
 // Notice that this implementation will store data locally. In the distributed
 // version of mapreduce it's common to store the data in the same worker that computed
