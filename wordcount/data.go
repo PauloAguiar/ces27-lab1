@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"unicode"
 )
 
 const (
@@ -114,6 +115,48 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	// YOUR CODE GOES HERE //
 	/////////////////////////
 	numMapFiles = 0
+	
+	delim := func(c rune) bool {
+		return !unicode.IsLetter(c) && !unicode.IsNumber(c)
+	}	
+	
+	inFile, err := os.Open(fileName)
+	if err != nil{
+		return 0, err
+	}
+	
+	buffer := make([]byte, chunkSize)
+	complement := make([]byte, 0)
+	var bytesRead int = 0
+	
+	for bytesRead, err = inFile.Read(buffer); err == nil; bytesRead, err = inFile.Read(buffer) {
+		fmt.Println(string(buffer), "\n")
+		buffer = append(complement, buffer...)
+		outFile,_ := os.Create(mapFileName(numMapFiles))
+		
+		if delim(rune(buffer[bytesRead + len(complement) - 1])) {
+			outFile.Write(buffer)
+			fmt.Println(string(buffer), "\n")
+			complement = complement[:0]
+		} else {
+			for i := bytesRead + len(complement) - 2; i >= 0; i-- {
+				//fmt.Println(i)
+				if delim(rune(buffer[i])) {
+					outFile.Write(buffer[:i+1])
+					fmt.Println(string(buffer[:i+1]), "\n")
+					complement = buffer[i+1:bytesRead + len(complement)]
+					break
+				}	
+			}
+		}
+		
+		err = outFile.Close()
+		buffer = buffer[0:chunkSize - len(complement):chunkSize]
+		numMapFiles++
+	}
+	
+	err = inFile.Close()
+	
 	return numMapFiles, nil
 }
 
