@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"io/ioutil"
+	"io"
+	"unicode"
 	"log"
 	"os"
 	"path/filepath"
@@ -114,6 +116,55 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	// YOUR CODE GOES HERE //
 	/////////////////////////
 	numMapFiles = 0
+
+	//file := bufio.NewReader //chunkSize
+
+
+
+	input,_ := os.Open(fileName)
+	finfo,_ := input.Stat()
+	fsize := finfo.Size()
+	//var buffer []byte
+	buffer := make([]byte, fsize + 1)
+	log.Println(fileName, "len = ", len(buffer), "file = ", fsize)
+
+	bytesRead, erro := input.Read(buffer)
+	input.Close()
+	log.Println("bytesread = ", bytesRead, "\nerr = ", erro)
+	if erro != nil {
+		if erro == io.EOF {
+			log.Println("EOF error")
+		} else {
+			return 0, erro
+		}
+	}
+	if bytesRead == 0 {
+		name := mapFileName(numMapFiles)
+		log.Println (name)
+		output,_ := os.Create(name)
+		numMapFiles++
+		output.Close()
+		return numMapFiles, nil
+	}
+	bytes := 0
+	cut := bytes + chunkSize
+	for bytes < bytesRead && bytes < cut {
+		log.Println ("bytes = ", bytes)
+		cut = bytes + chunkSize
+		if cut > bytesRead {
+			cut = bytesRead
+		}
+		for !unicode.IsLetter(rune(buffer[cut])) && !unicode.IsNumber(rune(buffer[cut])) {
+			cut--
+		}
+		name := mapFileName(numMapFiles)
+		log.Println (name)
+		output,_ := os.Create(name)
+		numMapFiles++
+		output.Write(buffer[bytes:cut])
+		output.Close()
+		bytes = cut
+	}
 	return numMapFiles, nil
 }
 

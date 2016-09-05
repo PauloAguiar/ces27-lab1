@@ -3,6 +3,10 @@ package main
 import (
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"hash/fnv"
+//	"log"
+	"unicode"
+	"strconv"
+	"strings"
 )
 
 // mapFunc is called for each array of bytes read from the splitted files. For wordcount
@@ -25,7 +29,27 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
+	//log.Println("start: ", string(input))
+	s := ""
+	var kv mapreduce.KeyValue
+	kv.Value = "1"
 	result = make([]mapreduce.KeyValue, 0)
+	for i := 0; i < len(input) ; i++ {
+		c := rune(input[i])
+		if (!unicode.IsLetter(c) && !unicode.IsNumber(c)) {
+			if (s != "") {
+				kv.Key = strings.ToLower(s)
+				result = append (result, kv)
+			}
+			s = ""
+		} else {
+			s = s + string(c)
+		}
+	}
+	if (s != "") {
+		kv.Key = strings.ToLower(s)
+		result = append (result, kv)
+	}
 	return result
 }
 
@@ -50,6 +74,33 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 	// YOUR CODE GOES HERE //
 	/////////////////////////
 	result = make([]mapreduce.KeyValue, 0)
+	var kv mapreduce.KeyValue
+	size := 0
+	ant := ""
+	for i := 0; i < len(input); i++ {
+		if ant == input[i].Key {
+			atoi,_ := strconv.Atoi(result[size - 1].Value)
+			input_val,err := strconv.Atoi(input[i].Value)
+			if err == nil {
+				result[size - 1].Value = strconv.Itoa(atoi + input_val)
+			} else {
+				result[size - 1].Value = strconv.Itoa(atoi + 1)
+			}
+		} else {
+			ant = input[i].Key
+			kv.Key = ant
+			input_val,err := strconv.Atoi(input[i].Value)
+			if err == nil {
+				kv.Value = strconv.Itoa(input_val)
+			} else {
+				kv.Value = "1"
+			}
+			result = append (result, kv)
+			size++
+		}
+		
+	}
+
 	return result
 }
 
