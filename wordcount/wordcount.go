@@ -35,8 +35,8 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	writeFunc := func( wordBuf []rune){
 		if  len(wordBuf) > 0 {
 			result = append(result , mapreduce.KeyValue{Key:string(wordBuf) , Value:strconv.Itoa(1)}) 
-			fmt.Println(string(wordBuf))
-			fmt.Println("inter :",result)
+			//fmt.Println(string(wordBuf))
+			//fmt.Println("inter :",result)
 			//
 		}
 	}
@@ -51,8 +51,8 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 		}
 	}
 	writeFunc( buffer)
-	fmt.Println("--------------")
-	fmt.Println(result)
+	//fmt.Println("--------------")
+	//fmt.Println(result)
 	
 	return result
 

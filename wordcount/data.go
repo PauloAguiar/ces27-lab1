@@ -147,7 +147,7 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 				return 0, err
 			}
 		} else {
-			fmt.Println("Lido: ", string(buffer))
+			//fmt.Println("Lido: ", string(buffer))
 			//fmt.Println(bytesRead)
 
 			//creates file in witch chunk will be written
@@ -171,7 +171,7 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
     		
     		//concat what's left of the past read with the slice of the current read minus any words cut in half
     		
-    		fmt.Println("Escrito: ", string(content))
+    		//fmt.Println("Escrito: ", string(content))
     		f.Write(content)
     		//check(err)
     		//fmt.Println(bufferAux)
