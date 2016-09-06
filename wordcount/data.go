@@ -117,58 +117,69 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	file, err := os.Open(fileName)
 	defer file.Close()
 
-	buffer := make( []byte, chunkSize) //buffer to read file
-	remainSize := 0
-	remainSizeAux := 0
+	//fileCopy, errCopy = os.Open(fileName)
+	//bufferCopy := buffer := make( []byte, chunkSize)
+
+	buffer := make( []byte, chunkSize) //buffer para ler o arquivo
+	remainSize := 0 //quantidade de bytes depois do último separador no chunk atual 
+	remainSizeAux := 0 // remainSize da leitura anterior
 	var bytesRead int  
-	//bufferAux := make([]byte, chunkSize)
+	bufferAux := make([]byte, chunkSize) //bufferAux guarda os bytes 
 	bytesReadAux := 0
+ 	
+ 	//bytesRead, err = file.Read(buffer)
+ 	//fmt.Println("Lido: ", string(buffer))
 
 	for {
+		//consider the case in witch text files are not smaller than chunk size
+
 		remainSizeAux = remainSize
-		if bytesReadAux != 0 && bytesReadAux - remainSizeAux >= 0 && remainSizeAux >= 0 {
-			bufferAux := buffer[(bytesReadAux - remainSizeAux):remainSizeAux]
-		}
-		//consider the case in witch text files are smaller than chunk size
+		//if bytesReadAux != 0 && bytesReadAux >= remainSizeAux {
+		copy ( bufferAux , buffer[(bytesReadAux - remainSizeAux):bytesReadAux])
+			 //bufferAux := buffer[(bytesReadAux - remainSizeAux):remainSizeAux]
+		//}
+		
 		if bytesRead, err = file.Read(buffer[0:(chunkSize - remainSizeAux)]); err != nil {
 			if err == io.EOF {
-				// EOF error
+				fmt.Println(err)
 				break
 			} else {
 				return 0, err
 			}
 		} else {
-			
+			fmt.Println("Lido: ", string(buffer))
+			//fmt.Println(bytesRead)
+
 			//creates file in witch chunk will be written
-			f, err := os.Create(mapFileName(numMapFiles))
+			f, _ := os.Create(mapFileName(numMapFiles))
     		//check(err)
-    		defer f.Close()
-    		fmt.Println(bytesRead)
-    		fmt.Println(err)
+    		
+    		//fmt.Println(err)
     		//number of characters between last separator and end end of chunk
     		remainSize = 0
-    		for  !( !unicode.IsLetter(rune(buffer[bytesRead - remainSize - 1]) ) && !unicode.IsNumber(rune(buffer[bytesRead - remainSize - 1] ))) {
+    		for unicode.IsLetter(rune(buffer[bytesRead - remainSize - 1]) ) || unicode.IsNumber(rune(buffer[bytesRead - remainSize - 1] )) {
     			remainSize++
     		}
     		//stores content to be written on the next file 
-			tmp := make([]byte, (chunkSize - remainSize))
+			content := make([]byte, (chunkSize - remainSize))
 
-    		//if remainSizeAux != 0 {
-    			//copy( tmp , bufferAux)	
-    		//} 
-    		copy ( tmp[remainSizeAux:(bytesRead - remainSize)] , buffer[0:(bytesRead - remainSize)] )
+    		if remainSizeAux != 0 {
+    			copy( content , bufferAux[0:remainSizeAux])	
+    		} 
+    		copy ( content[remainSizeAux:(chunkSize - remainSize) ] , buffer[0:(bytesRead - remainSize)] )
     		
     		
     		//concat what's left of the past read with the slice of the current read minus any words cut in half
     		
-    		
-    		n, err := f.Write(tmp)
+    		fmt.Println("Escrito: ", string(content))
+    		f.Write(content)
     		//check(err)
-    		fmt.Println(bufferAux)
-    		fmt.Println(bytesReadAux)
+    		//fmt.Println(bufferAux)
+    		//fmt.Println(bytesReadAux)
     		bytesReadAux = bytesRead
-			fmt.Println(n)
-			numMapFiles++
+			//fmt.Println(n)
+			numMapFiles++ 
+			f.Close()
 		}
 
 	}

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"unicode"
 	"strconv"
-	"bytes"
+	"fmt"
 	//"utf8"	
 )
 
@@ -31,42 +31,31 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	//n := bytes.Index(input, []byte{0}) //input size
 	s := string(input) //converts array of bytes into an array
 	s = strings.ToLower(s) //make words lower cased
-
-	var buffer bytes.Buffer
+	buffer := make( []rune  , 0)
+	writeFunc := func( wordBuf []rune){
+		if  len(wordBuf) > 0 {
+			result = append(result , mapreduce.KeyValue{Key:string(wordBuf) , Value:strconv.Itoa(1)}) 
+			fmt.Println(string(wordBuf))
+			fmt.Println("inter :",result)
+			//
+		}
+	}
 	//for sep := 1 ; sep < len(s)  ; sep++ {
 	for _ , carac := range s {
 		//case a separator is found, new word must be added to the result
-		if( !unicode.IsLetter(rune(carac)) && !unicode.IsNumber(rune(carac))){
-			result = append(result , mapreduce.KeyValue{Key:buffer.String() , Value:strconv.Itoa(1)}) 
-			buffer.Reset()
+		if( !unicode.IsLetter(carac) && !unicode.IsNumber(carac)){
+			writeFunc( buffer)
+			buffer =  make( []rune  , 0)
 		} else {
-			quoted := strconv.QuoteRuneToASCII(carac)
-   			unquoted := quoted[1:len(quoted)-1] 
-			buffer.WriteString(unquoted)
+			buffer =  append( buffer , carac )
 		}
 	}
-	//}
-	
+	writeFunc( buffer)
+	fmt.Println("--------------")
+	fmt.Println(result)
 	
 	return result
-	/*for c := 0 ; c < utf8.RuneCountInString(s) ;  c++ {
-		if !unicode.IsLetter(s[c]) && !unicode.IsNumber(s[c]) {
-			//array with positions of separators
-			n := len(slice)
-    		if n == cap(slice) {
-        		// Slice is full; must grow.
-        		// We double its size and add 1, so if the size is zero we still grow.
-        		newSlice := make([]int, len(slice), 2*len(slice)+1)
-        		copy(newSlice, slice)
-        		slice = newSlice
-    		}
-   		 	slice = slice[0 : n+1]
-    		slice[n] = c
-		} 	
-	}
-	for i = 0 ; i < len(slice) - 1 ; i ++ {
-		result[mapreduce.KeyValue{s[(slice[i] + 1):(slice[i+1] - slice[i])], 1}]
-	}*/
+
 }
 
 // reduceFunc is called for each merged array of KeyValue resulted from all map jobs.
@@ -89,13 +78,11 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
-	//iterar sobre o input usando range
-	//for	input range 
-		//contar o número de ocorrências 
-	//	strconv.Atoi(element.value) 
+
 
 	result = make([]mapreduce.KeyValue, 0)
 	m :=  make(map[string]string)
+	
 	for _ , element := range input {
 		if _, ok := m[element.Key]; !ok {
 			// Don't have the key
@@ -103,12 +90,14 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 			m[element.Key] = element.Value 
 		} else {
 			 val1 , err1 := strconv.Atoi(m[element.Key])
+			 if err1 != nil {
+			 	val1 = 1
+			 }
 			 val2 , err2 := strconv.Atoi(element.Value)
-			 if err1 == nil && err2 == nil {
-				m[element.Key] = strconv.Itoa(val1 + val2)
-			} else {
-				m[element.Key] = "1"
-			}
+			 if err2 != nil {
+			 	val2 = 1
+			 }
+			m[element.Key] = strconv.Itoa(val1 + val2)
 		}
 	}
 
@@ -118,25 +107,6 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 		result = append ( result , aux )
 	}
 	return result
-	/*
-	for index , element := range input {
-		if _, ok := result[element]; !ok {
-			// Don't have the key
-			result = append ( result , element ) 
-		} else {
-			//adiciona 1 ao value do elemento já está em result
-			for indexR , elementR := range result {
-				if(Compare(element.Key , elementR.Key)){
-					result[indexR].Value = strconv.Itoa(strconv.Atoi(elementR.Value) + 1)  
-				}
-			}
-		}	
-	}*/
-	
-	
-	//for _, value := range array {
-    //	sum += value
-	//}
 	
 }
 
