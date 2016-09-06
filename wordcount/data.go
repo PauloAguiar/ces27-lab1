@@ -1,6 +1,9 @@
 package main
 
 import (
+	"unicode"
+	"bufio"
+	"io"
 	"encoding/json"
 	"fmt"
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
@@ -8,6 +11,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	//"strconv"
 )
 
 const (
@@ -111,9 +115,92 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	// 	to be handled by the caller as the second parameter of the return.
 
 	/////////////////////////
-	// YOUR CODE GOES HERE //
+	var (
+		//nome string
+		//inicio int
+		//space int
+		//position int
+		tamanho int
+		texto string
+		palavra string
+		//contador int
+		nPalavra int 
+	)
+	//f, err := os.Open(fileName)
+
+	//texto, err = ReadFile(fileName)
+	file, err := os.Open(fileName)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+	//inicio = 0
+	tamanho = 0
+	//position = 0
+	//space = 0
+	numMapFiles = -1
+	nPalavra = 0
+	arquivo := bufio.NewReader(file)
+
+
+	for {
+		if rune,_ ,err := arquivo.ReadRune(); err != nil {
+			if err == io.EOF {
+				numMapFiles = numMapFiles + 1
+				saida,errw := os.Create(mapFileName(numMapFiles))
+				if errw != nil {
+						panic(errw)
+					}
+				w := bufio.NewWriter(saida)
+				w.WriteString(texto)
+				w.Flush()
+				saida.Close()
+				break
+			} else {
+				return 0, err
+			}
+		} else {
+			palavra = palavra + fmt.Sprintf("%c", rune)
+			nPalavra = nPalavra + 1
+			if unicode.IsSpace(rune) {
+				if tamanho + nPalavra < chunkSize {
+					texto = texto + palavra
+					palavra = ""
+					tamanho = tamanho + nPalavra
+					nPalavra = 0
+				} else {
+					numMapFiles = numMapFiles + 1
+					//nome := "split" + strconv.Itoa(contador) + ".txt"
+					saida,errw := os.Create(mapFileName(numMapFiles))
+					if errw != nil {
+						panic(errw)
+					}
+					w := bufio.NewWriter(saida)
+					w.WriteString(texto)
+					w.Flush()
+					saida.Close()
+					texto = palavra
+					palavra = ""
+					tamanho = nPalavra
+					nPalavra = 0
+				}
+			}
+		}
+	}
+
+	// if bytesRead, err = file.Read(buffer); err != nil {
+	//  			if err == io.EOF {
+	//  				// EOF error
+	//  			} else {
+	// 				return 0, err
+	// 			}
+	//  		}
+	// s = string(texto)
+
+	
+
 	/////////////////////////
-	numMapFiles = 0
+	//numMapFiles = 0
 	return numMapFiles, nil
 }
 
