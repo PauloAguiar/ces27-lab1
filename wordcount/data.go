@@ -8,6 +8,8 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"io"
+	"unicode"
 )
 
 const (
@@ -114,6 +116,73 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	// YOUR CODE GOES HERE //
 	/////////////////////////
 	numMapFiles = 0
+
+	var (
+		file_in          *os.File
+		file_out         *os.File
+		buffer []byte
+	)
+
+ 	if file_in, err = os.Open(fileName); err != nil {
+ 		return 0, err
+ 	}
+ 	defer file_in.Close()
+ 	
+
+ 	last := 0
+  	sobra := ""
+  	texto := ""
+ 	//eoffalg := false
+ 	for  {
+ 		buffer = make([]byte, chunkSize)
+		if bytesRead, err := file_in.Read(buffer); err != nil { // se tiver erro na leitura
+			if err == io.EOF {
+				break
+			} else {
+				return 0, err
+			}
+		} else { // se nao tiver erro na leitura
+			if bytesRead < chunkSize {			
+				
+				if file_out, err = os.Create(mapFileName(numMapFiles)); err != nil {
+					log.Fatal(err)
+				}
+				numMapFiles += 1
+				file_out.Write(buffer)
+				file_out.Close()
+				break
+			}
+
+			
+			texto = string(buffer)
+			//texto = strings.join(sobra, texto)
+			texto = sobra + texto
+			for index, runeValue := range texto {
+        		if !unicode.IsLetter(runeValue) && !unicode.IsNumber(runeValue){
+        			if index <= chunkSize{
+        				last = index		
+        			}
+        		}
+    		}
+
+    		texto1 := texto[:last]
+    		sobra = texto[last:]
+
+    		if file_out, err = os.Create(mapFileName(numMapFiles)); err != nil {
+				log.Fatal(err)
+			}
+			numMapFiles += 1
+			file_out.WriteString(texto1)
+			file_out.Close()
+
+    	}
+
+		
+	}
+
+
+			
+
 	return numMapFiles, nil
 }
 
