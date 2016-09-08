@@ -8,6 +8,8 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"unicode/utf8"
+	"unicode"
 )
 
 const (
@@ -113,7 +115,28 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
+	byteFile, _ := ioutil.ReadFile(fileName)
+	fileRunes := []rune(string(byteFile))
+
 	numMapFiles = 0
+
+	partRunes := make([]rune, 0)
+	for i := 0; i < utf8.RuneCount(byteFile); i++ {
+		partRunes = append(partRunes, fileRunes[i])
+		if len(partRunes) > chunkSize || i == utf8.RuneCount(byteFile)-1 {
+			for unicode.IsLetter(fileRunes[i]) || unicode.IsNumber(fileRunes[i]) || len(partRunes) > chunkSize {				
+				partRunes = partRunes[:len(partRunes)-1]
+				i--
+			}
+			wError := ioutil.WriteFile(mapFileName(numMapFiles), []byte(string(partText)), 0644)
+			if wError != nil {
+				panic(wError)
+			}
+			numMapFiles++
+			partRunes = make([]rune, 0)
+		}
+	}
+
 	return numMapFiles, nil
 }
 
