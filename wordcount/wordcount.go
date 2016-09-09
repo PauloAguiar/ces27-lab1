@@ -3,6 +3,9 @@ package main
 import (
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"hash/fnv"
+	"unicode"
+	"strings"
+	"strconv"
 )
 
 // mapFunc is called for each array of bytes read from the splitted files. For wordcount
@@ -22,10 +25,46 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	// 			strconv.Itoa(5) // = "5"
 	//			strconv.Atoi("5") // = 5
 
+
+// map(String key, String value):
+//     // key: document name
+//     // value: document contents
+//     for each word w in value:
+//         EmitIntermediate(w, "1");
+
+// reduce(String key, Iterator values):
+//     // key: a word
+//     // values: a list of counts
+//     int result = 0;
+//     for each v in values:
+//         result += ParseInt(v);
+//     Emit(AsString(result));
+
+
+
+
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
 	result = make([]mapreduce.KeyValue, 0)
+	s := make([]rune, 0)
+	for i := 0; i <= len(input); i++ {
+		//Checking if we hit the end of the stream or a delimiter:
+		if i == len(input) || (!unicode.IsLetter(rune(input[i])) && !unicode.IsNumber(rune(input[i]))) {
+			if len(s) != 0{
+				var(
+					newWord mapreduce.KeyValue
+				)
+				newWord.Key = strings.ToLower(string(s))
+				newWord.Value = "1"
+				result = append(result, newWord)
+			}
+			s = s[:0]
+		} else {
+			//if not, we just add the character to the string we are building
+			s = append(s, rune(input[i]))
+		}
+	}
 	return result
 }
 
@@ -49,7 +88,30 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
+	myMap := make(map[string]int)
+	for i := 0; i < len(input); i++ {
+	 	if _, ok := myMap[input[i].Key]; !ok {
+	 		//We dont have this word in our map, so we create it
+	 		myMap[input[i].Key] = 0
+	 	}
+	 	addedValue, err := strconv.Atoi(input[i].Value)
+
+	 	//Treating the "+" case
+	 	if err != nil{
+	 		addedValue = 1
+	 	}
+	 	myMap[input[i].Key] += addedValue
+	}
+
 	result = make([]mapreduce.KeyValue, 0)
+	for k,_ := range myMap {
+		var(
+			newWord mapreduce.KeyValue
+		)
+		newWord.Key = k
+		newWord.Value = strconv.Itoa(myMap[k])
+		result = append(result, newWord)
+	}
 	return result
 }
 

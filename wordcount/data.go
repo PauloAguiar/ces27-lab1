@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
+	"unicode"
+	"unicode/utf8"
 )
 
 const (
@@ -113,7 +116,56 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
+	var(
+		bytesRead int
+	)
 	numMapFiles = 0
+	buffer := make([]byte, 8)
+	//input will contain the entire input file data
+	input := make([]byte, 0)
+	fin, err := os.Open(fileName)
+
+	for ; err == nil; {
+		if bytesRead, err = fin.Read(buffer); err != nil {
+			if err == io.EOF {
+				for i:=0; i<bytesRead; i++ {
+					input = append(input, buffer[i])
+				}
+			}else {
+				return 0, err
+			}
+		}
+		for i:=0; i<bytesRead; i++ {
+			input = append(input, buffer[i])
+		}
+	}
+	//lastBlankPos will store the first byte of the last delimiter(non-number, non-letter) rune of the string
+	lastBlankPos := -1
+	str := make([]rune, 0)
+	for ;len(input) > 0; {
+		newRune, runeSize := utf8.DecodeRune(input)
+		input = input[runeSize:]
+		str = append(str, newRune)
+		if !unicode.IsLetter(newRune) && !unicode.IsNumber(newRune){
+			//str[lastBlankPos] is the first byte of a delimiter rune
+			lastBlankPos = len(str)-runeSize
+		}
+		if len(str) > chunkSize{
+			fout, _ := os.Create(mapFileName(numMapFiles))
+			numMapFiles++
+			fout.Write([]byte(string(str[0:lastBlankPos])))
+			defer fout.Close()
+			str = str[lastBlankPos:]
+			lastBlankPos = 0
+		}
+	}
+	if(len(str) > 0){
+		fout, _ := os.Create(mapFileName(numMapFiles))
+		numMapFiles++
+		fout.Write([]byte(string(str)))
+		defer fout.Close()
+	}
+	defer fin.Close()
 	return numMapFiles, nil
 }
 
