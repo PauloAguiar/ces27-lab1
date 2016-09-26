@@ -3,6 +3,11 @@ package main
 import (
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"hash/fnv"
+	"strings"
+	"unicode"
+	"strconv"
+	
+	//"utf8"	
 )
 
 // mapFunc is called for each array of bytes read from the splitted files. For wordcount
@@ -21,12 +26,36 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	// 		If you want to convert to and from string types, use the package 'strconv':
 	// 			strconv.Itoa(5) // = "5"
 	//			strconv.Atoi("5") // = 5
-
-	/////////////////////////
-	// YOUR CODE GOES HERE //
-	/////////////////////////
-	result = make([]mapreduce.KeyValue, 0)
+	result = make([]mapreduce.KeyValue, 0) 
+	
+	//n := bytes.Index(input, []byte{0}) //input size
+	s := string(input) //converts array of bytes into an array
+	s = strings.ToLower(s) //make words lower cased
+	buffer := make( []rune  , 0)
+	writeFunc := func( wordBuf []rune){
+		if  len(wordBuf) > 0 {
+			result = append(result , mapreduce.KeyValue{Key:string(wordBuf) , Value:strconv.Itoa(1)}) 
+			//fmt.Println(string(wordBuf))
+			//fmt.Println("inter :",result)
+			//
+		}
+	}
+	//for sep := 1 ; sep < len(s)  ; sep++ {
+	for _ , carac := range s {
+		//case a separator is found, new word must be added to the result
+		if( !unicode.IsLetter(carac) && !unicode.IsNumber(carac)){
+			writeFunc( buffer)
+			buffer =  make( []rune  , 0)
+		} else {
+			buffer =  append( buffer , carac )
+		}
+	}
+	writeFunc( buffer)
+	//fmt.Println("--------------")
+	//fmt.Println(result)
+	
 	return result
+
 }
 
 // reduceFunc is called for each merged array of KeyValue resulted from all map jobs.
@@ -49,8 +78,36 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
+
+
 	result = make([]mapreduce.KeyValue, 0)
+	m :=  make(map[string]string)
+	
+	for _ , element := range input {
+		if _, ok := m[element.Key]; !ok {
+			// Don't have the key
+			//m[element.Key] = strconv.Atoi(element.Value)
+			m[element.Key] = element.Value 
+		} else {
+			 val1 , err1 := strconv.Atoi(m[element.Key])
+			 if err1 != nil {
+			 	val1 = 1
+			 }
+			 val2 , err2 := strconv.Atoi(element.Value)
+			 if err2 != nil {
+			 	val2 = 1
+			 }
+			m[element.Key] = strconv.Itoa(val1 + val2)
+		}
+	}
+
+	for key, value  := range m {
+		//aux := mapreduce.KeyValue{Key:k , Value: strconv.Itoa(m[k])}
+		aux := mapreduce.KeyValue{Key:key , Value: value}
+		result = append ( result , aux )
+	}
 	return result
+	
 }
 
 // shuffleFunc will shuffle map job results into different job tasks. It should assert that
