@@ -109,12 +109,48 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	//
 	//	It's also important to notice that errors can be handled here or they can be passed down
 	// 	to be handled by the caller as the second parameter of the return.
+	
+	dat, err := ioutil.ReadFile(fileName)
+	if err!=nil{
+		fmt.Printf("error openning the file")
+		return 0,err
+	}
+	string_casted:=string(dat)	
+	length:= len(string_casted)
+	//fmt.Printf("length = %d", length)
+	buffer:=make([]byte,0, chunkSize)
+	size:=chunkSize 
+	numFiles:=0
+	//fmt.Printf("\n----chegou----\n")
+	if length==0{
+		return 0,err
+	}
+	for i:=-1 ;   i<length   ;  size=chunkSize{
+		//fmt.Printf("\ni=%d , size=%d----chegou----\n", i, size)
+		for ; i+size>=length || i+size<0 || isDelimiter(string_casted[i+size])==false ; {
+			size--;
+			//fmt.Printf("\ni=%d , size=%d----chegou----\n", i, size)
+		}
+		//fmt.Printf("\n----chegou----\n")
 
-	/////////////////////////
-	// YOUR CODE GOES HERE //
-	/////////////////////////
-	numMapFiles = 0
-	return numMapFiles, nil
+		for j:=1 ; j<=size;j++{
+			buffer=AppendByte(buffer,string_casted[i+j])			
+		}	
+		numFiles++;
+		f, err := os.Create(mapFileName(numFiles-1))
+		//fmt.Printf("%s",mapFileName(numFiles-1))
+		if err!=nil{
+			fmt.Printf("error creating files")
+		}
+	    f.Write(buffer)
+	    f.Close()
+		buffer=buffer[:0]
+		i+=size
+		if i==length-1{
+			break
+		}
+	}
+	return numFiles, err
 }
 
 func mapFileName(id int) string {
