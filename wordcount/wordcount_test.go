@@ -58,7 +58,7 @@ func TestSplitData(t *testing.T) {
 		tmpFileInfo      os.FileInfo
 	)
 
-	_ = os.Mkdir(MAP_PATH, os.ModeDir)
+	_ = os.Mkdir(mapPath, os.ModeDir)
 
 	for _, test := range tests {
 		if !test.enabled {
@@ -149,7 +149,7 @@ func TestMapFunc(t *testing.T) {
 			} else {
 				value, err := strconv.Atoi(kv.Value)
 				if err != nil {
-					combined[kv.Key] += 1
+					combined[kv.Key]++
 				} else {
 					combined[kv.Key] += value
 				}
