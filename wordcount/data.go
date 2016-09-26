@@ -8,6 +8,8 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"io"
+	"unicode"
 )
 
 const (
@@ -113,7 +115,52 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
+
 	numMapFiles = 0
+
+	// Try to open file
+	file, err := os.Open(fileName)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer file.Close()
+
+	endOfFile := false
+
+	//While it's not EndOfFile
+	for !endOfFile {
+		//Generate a buffer 
+		buffer := make([]byte, chunkSize)
+		firstByte := 0
+
+		if bytesRead, err := file.Read(buffer); err != nil {
+			//If it's EOF
+			if err == io.EOF {
+				endOfFile = true
+			} else {
+				return 0, err
+			}
+		} else {
+			// Whenever we read something from file, we try to find the last byte that
+			// does not split any word
+			for i := bytesRead - 1; i >= 0; i-- {
+				c := rune(buffer[i])
+				if(!unicode.IsLetter(c) && !unicode.IsNumber(c)){
+					// Start the next reading from the first non-separator byte. 
+					firstByte = i + 1;
+					// Stop the search
+					break
+				}
+			}
+			// Write the file until the last separator byte
+			ioutil.WriteFile(mapFileName(numMapFiles), buffer[:(firstByte - 1)], 0644)
+			// Move the file pointer to the first non-separator byte
+			file.Seek( int64((numMapFiles*chunkSize) + firstByte) , 0)
+			numMapFiles++
+		}
+}
+
 	return numMapFiles, nil
 }
 

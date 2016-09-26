@@ -3,6 +3,9 @@ package main
 import (
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"hash/fnv"
+	"unicode"
+	"strings"
+	"strconv"
 )
 
 // mapFunc is called for each array of bytes read from the splitted files. For wordcount
@@ -25,9 +28,39 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
+
+	actualString := make([]byte, 0)
 	result = make([]mapreduce.KeyValue, 0)
+
+	for _,element := range input {
+		var c = rune(element)
+		//Se não eh parte de uma palavra, acabou a palavra
+		if(!unicode.IsLetter(c) && !unicode.IsNumber(c)){
+			//Que só é contabilizada se ela existir (tamanho >= 1)
+			if(len(actualString) >= 1){
+				word := string(actualString[:len(actualString)])
+				word = strings.ToLower(word)
+				actualString = nil
+				key_Value := mapreduce.KeyValue{Key: word, Value: "1"}
+				result = append(result, key_Value)			}
+		} else {
+			//Se for parte de uma palavra, é contabilizada
+			actualString = append(actualString, element)
+		}		
+	}
+
+	//A ultima palavra, que não pega no loop.(Se houver)
+	if(len(actualString) >= 1){
+		word := string(actualString[:len(actualString)])
+		word = strings.ToLower(word)
+		actualString = nil
+		key_Value := mapreduce.KeyValue{Key: word, Value: "1"}
+		result = append(result, key_Value)
+	}
+
 	return result
 }
+
 
 // reduceFunc is called for each merged array of KeyValue resulted from all map jobs.
 // It should return a similar array that summarizes all similar keys in the input.
@@ -50,6 +83,26 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 	// YOUR CODE GOES HERE //
 	/////////////////////////
 	result = make([]mapreduce.KeyValue, 0)
+	auxMap := make(map[string]int)
+
+	for _, element := range input {
+		if _, ok := auxMap[element.Key]; !ok {
+			value, err := strconv.Atoi(element.Value)
+			if(err != nil) {value = 1}
+			auxMap[element.Key] = value
+		} else {
+			value, err := strconv.Atoi(element.Value)
+			if(err != nil) {value = 1}
+			auxMap[element.Key] = auxMap[element.Key] + value
+		}
+	}
+
+	for key, value := range auxMap {
+		val := strconv.Itoa(value)
+    	result = append(result, mapreduce.KeyValue{Key: key, Value: val})
+	}
+
+
 	return result
 }
 
