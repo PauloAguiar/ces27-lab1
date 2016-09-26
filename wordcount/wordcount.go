@@ -2,7 +2,7 @@ package main
 
 import (
 	"bytes"
-	"github.com/pauloaguiar/lab1-ces27/mapreduce"
+	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"hash/fnv"
 	"strconv"
 	"strings"

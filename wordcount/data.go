@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pauloaguiar/lab1-ces27/mapreduce"
+	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"io"
 	"io/ioutil"
 	"log"

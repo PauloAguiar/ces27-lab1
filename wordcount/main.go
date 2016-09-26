@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"github.com/pauloaguiar/lab1-ces27/mapreduce"
+	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"log"
 	"os"
 )
