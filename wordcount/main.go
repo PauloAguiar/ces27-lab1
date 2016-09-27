@@ -2,10 +2,9 @@ package main
 
 import (
 	"flag"
+	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"log"
 	"os"
-
-	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 )
 
 var (
@@ -33,8 +32,8 @@ func main() {
 	log.Println("Reduce Jobs:", *reduceJobs)
 	log.Println("Chunk Size:", *chunkSize)
 
-	_ = os.Mkdir(mapPath, os.ModeDir)
-	_ = os.Mkdir(resultPath, os.ModeDir)
+	_ = os.Mkdir(MAP_PATH, os.ModeDir)
+	_ = os.Mkdir(RESULT_PATH, os.ModeDir)
 
 	// Splits data into chunks with size up to chunkSize
 	if numFiles, err = splitData(*file, *chunkSize); err != nil {
@@ -48,12 +47,12 @@ func main() {
 	// Initialize mapreduce.Task object with the channels created above and functions
 	// mapFunc, shufflerFunc and reduceFunc defined in wordcount.go
 	task = &mapreduce.Task{
-		Map:           mapFunc,
-		Shuffle:       shuffleFunc,
-		Reduce:        reduceFunc,
-		NumReduceJobs: *reduceJobs,
-		InputChan:     fanIn,
-		OutputChan:    fanOut,
+		mapFunc,
+		shuffleFunc,
+		reduceFunc,
+		*reduceJobs,
+		fanIn,
+		fanOut,
 	}
 
 	// Run task based on parameters

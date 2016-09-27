@@ -13,15 +13,15 @@ import (
 )
 
 const (
-	mapPath          = "map/"
-	resultPath       = "result/"
-	mapBufferSize    = 10
-	reduceBufferSize = 10
+	MAP_PATH           = "map/"
+	RESULT_PATH        = "result/"
+	MAP_BUFFER_SIZE    = 10
+	REDUCE_BUFFER_SIZE = 10
 )
 
 // fanInData will run a goroutine that reads files crated by splitData and share them with
 // the mapreduce framework through the one-way channel. It'll buffer data up to
-// MapBufferSize (files smaller than chunkSize) and resume loading them
+// MAP_BUFFER_SIZE (files smaller than chunkSize) and resume loading them
 // after they are read on the other side of the channle (in the mapreduce package)
 func fanInData(numFiles int) chan []byte {
 	var (
@@ -30,7 +30,7 @@ func fanInData(numFiles int) chan []byte {
 		buffer []byte
 	)
 
-	input = make(chan []byte, mapBufferSize)
+	input = make(chan []byte, MAP_BUFFER_SIZE)
 
 	go func() {
 		for i := 0; i < numFiles; i++ {
@@ -58,7 +58,7 @@ func fanOutData() (output chan []mapreduce.KeyValue, done chan bool) {
 		reduceCounter int
 	)
 
-	output = make(chan []mapreduce.KeyValue, reduceBufferSize)
+	output = make(chan []mapreduce.KeyValue, REDUCE_BUFFER_SIZE)
 	done = make(chan bool)
 
 	go func() {
@@ -158,9 +158,9 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 }
 
 func mapFileName(id int) string {
-	return filepath.Join(mapPath, fmt.Sprintf("map-%v", id))
+	return filepath.Join(MAP_PATH, fmt.Sprintf("map-%v", id))
 }
 
 func resultFileName(id int) string {
-	return filepath.Join(resultPath, fmt.Sprintf("result-%v", id))
+	return filepath.Join(RESULT_PATH, fmt.Sprintf("result-%v", id))
 }

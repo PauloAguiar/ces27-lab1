@@ -8,13 +8,11 @@ import (
 	"path/filepath"
 )
 
-// KeyValue is the string-string pair for Map output and Reduce input and output
 type KeyValue struct {
 	Key   string
 	Value string
 }
 
-// Task is the descriptor of a Map Reduce Task to be Executed
 type Task struct {
 	Map           MapFunc
 	Shuffle       ShuffleFunc
@@ -24,17 +22,12 @@ type Task struct {
 	OutputChan    chan<- []KeyValue
 }
 
-// MapFunc is the function to be executed on the Map step of the task
 type MapFunc func([]byte) []KeyValue
-
-// ReduceFunc is the function to be executed on the Reduce step of the task
 type ReduceFunc func([]KeyValue) []KeyValue
-
-// ShuffleFunc is the function to be executed on the Shuffle step of the task
 type ShuffleFunc func(*Task, string) int
 
 const (
-	reducePath = "reduce/"
+	REDUCE_PATH = "reduce/"
 )
 
 // Store result from map operation locally.
@@ -49,7 +42,7 @@ func storeLocal(task *Task, idMapTask int, data []KeyValue) {
 	log.Println("Storing locally.\tMapId:", idMapTask, "\tLen:", len(data))
 
 	for r := 0; r < task.NumReduceJobs; r++ {
-		file, err = os.Create(filepath.Join(reducePath, reduceName(idMapTask, r)))
+		file, err = os.Create(filepath.Join(REDUCE_PATH, reduceName(idMapTask, r)))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -78,14 +71,14 @@ func mergeLocal(task *Task, mapCounter int) {
 	)
 
 	for r := 0; r < task.NumReduceJobs; r++ {
-		if mergeFile, err = os.Create(filepath.Join(reducePath, mergeReduceName(r))); err != nil {
+		if mergeFile, err = os.Create(filepath.Join(REDUCE_PATH, mergeReduceName(r))); err != nil {
 			log.Fatal(err)
 		}
 
 		mergeFileEncoder = json.NewEncoder(mergeFile)
 
 		for m := 0; m < mapCounter; m++ {
-			if file, err = os.Open(filepath.Join(reducePath, reduceName(m, r))); err != nil {
+			if file, err = os.Open(filepath.Join(REDUCE_PATH, reduceName(m, r))); err != nil {
 				log.Fatal(err)
 			}
 
@@ -115,7 +108,7 @@ func loadLocal(idReduce int) (data []KeyValue) {
 		fileDecoder *json.Decoder
 	)
 
-	if file, err = os.Open(filepath.Join(reducePath, mergeReduceName(idReduce))); err != nil {
+	if file, err = os.Open(filepath.Join(REDUCE_PATH, mergeReduceName(idReduce))); err != nil {
 		log.Fatal(err)
 	}
 
