@@ -3,13 +3,14 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
-	"unicode/utf8"
 	"unicode"
+	"unicode/utf8"
+
+	"github.com/pauloaguiar/ces27-lab1/mapreduce"
 )
 
 const (
@@ -124,7 +125,7 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	for i := 0; i < utf8.RuneCount(byteFile); i++ {
 		partRunes = append(partRunes, fileRunes[i])
 		if len(partRunes) > chunkSize || i == utf8.RuneCount(byteFile)-1 {
-			for unicode.IsLetter(fileRunes[i]) || unicode.IsNumber(fileRunes[i]) || len(partRunes) > chunkSize {				
+			for unicode.IsLetter(fileRunes[i]) || unicode.IsNumber(fileRunes[i]) || len(partRunes) > chunkSize {
 				partRunes = partRunes[:len(partRunes)-1]
 				i--
 			}
