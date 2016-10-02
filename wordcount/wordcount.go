@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
-	"fmt"
 )
 
 // mapFunc is called for each array of bytes read from the splitted files. For wordcount
