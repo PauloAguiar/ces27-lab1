@@ -43,7 +43,7 @@ func TestSplitData(t *testing.T) {
 	}{
 		{true, "text file empty", "", 32},
 		{true, "text files bigger than chunk size", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In eu elit vel libero auctor tempor nullam.", 32},
-		{true, "text file smaller than chunk size", "Lorem ipsum.", 32},
+		{true, "text file smaller than chunk size", "Lorem ipsum.", 32},				
 		{true, "text file has exact chunk size", "Lorem ipsum dolor sit amet, con.", 32},
 	}
 
