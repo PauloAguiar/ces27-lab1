@@ -128,7 +128,7 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 				partRunes = partRunes[:len(partRunes)-1]
 				i--
 			}
-			wError := ioutil.WriteFile(mapFileName(numMapFiles), []byte(string(partText)), 0644)
+			wError := ioutil.WriteFile(mapFileName(numMapFiles), []byte(string(partRunes)), 0644)
 			if wError != nil {
 				panic(wError)
 			}
