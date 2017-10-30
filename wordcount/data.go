@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"bufio"
 )
 
 const (
@@ -110,10 +111,57 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	//	It's also important to notice that errors can be handled here or they can be passed down
 	// 	to be handled by the caller as the second parameter of the return.
 
-	/////////////////////////
-	// YOUR CODE GOES HERE //
-	/////////////////////////
-	numMapFiles = 0
+	
+	f, err := os.Open(fileName);
+	if err != nil {
+		return 0, err;
+	}
+
+	scanner := bufio.NewScanner(f);
+	scanner.Split(bufio.ScanWords);
+	
+	var buffer []byte;
+	buffer = make([]byte, chunkSize);
+
+	var cnt int;
+	cnt = 0;
+	numMapFiles = 0;
+	
+	for scanner.Scan() {
+		word := scanner.Text();
+
+		if cnt + len(word) + 1 >= chunkSize {
+			writer, err := os.Create(mapFileName(numMapFiles));
+			numMapFiles = numMapFiles + 1;
+			if err != nil {
+				return 0, err;
+			}
+			writer.Write(buffer[0:cnt]);
+			writer.Close();
+			cnt = 0;
+		}
+
+		if cnt > 0 {
+			buffer[cnt] = ' ';
+			cnt++;
+		}
+		for i := 0; i < len(word); i++ {
+			buffer[cnt] = word[i];
+			cnt++;
+		}
+	}
+
+	writer, err := os.Create(mapFileName(numMapFiles));
+	numMapFiles = numMapFiles + 1;
+	if err != nil {
+		return 0, err;
+	}
+	writer.Write(buffer[0:cnt]);
+	writer.Close();
+	cnt = 0;
+
+	f.Close();
+
 	return numMapFiles, nil
 }
 

@@ -64,7 +64,7 @@ func TestSplitData(t *testing.T) {
 			continue
 		}
 
-		t.Logf("Description: %v", test.description)
+		t.Logf("Description: %v", test.description);
 
 		fileSize = createTestFile(t, fileName, test.content)
 
