@@ -83,11 +83,37 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 	//
 	// 	It's also possible to receive a non-numeric value (i.e. "+"). You can check the
 	// 	error returned by Atoi and if it's not 'nil', use 1 as the value.
-
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
+
+	var m map[string]int
+	m = make(map[string]int)
+	for len(input) > 0 {
+		a := input[0]
+		input = input[1:]
+		if _, ok := m[a.Key]; !ok {
+			// Don't have the key
+			value, err := strconv.Atoi(a.Value)
+			if err == nil {
+				m[a.Key] = value
+			} else {
+				m[a.Key] = 1
+			}
+		} else {
+			value, err := strconv.Atoi(a.Value)
+			if err == nil {
+				m[a.Key] = m[a.Key] + value
+			} else {
+				m[a.Key] = m[a.Key] + 1
+			}
+		}
+	}
+
 	result = make([]mapreduce.KeyValue, 0)
+	for k, v := range m {
+		result = append(result, mapreduce.KeyValue{k, strconv.Itoa(v)})
+	}
 	return result
 }
 
