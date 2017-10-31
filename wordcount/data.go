@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/pauloaguiar/ces27-lab1/mapreduce"
@@ -8,6 +9,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	// "strings"
 )
 
 const (
@@ -113,7 +115,49 @@ func splitData(fileName string, chunkSize int) (numMapFiles int, err error) {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
+
+	// References:
+	// https://stackoverflow.com/questions/36111777/golang-how-to-read-a-text-file
+	// https://stackoverflow.com/questions/13737745/split-a-string-on-whitespace-in-go
 	numMapFiles = 0
+
+	var buffer bytes.Buffer
+
+	b, err := ioutil.ReadFile(fileName) // just pass the file name
+	if err != nil {
+		fmt.Print(err)
+	}
+
+	buffer.Reset()
+	str := string(b) // convert content to a 'string'
+	run := []rune(str)
+
+	// fmt.Println("Chunck size: ", chunkSize)              // print the content as 'bytes'
+	// fmt.Println("File content : ", string(b))            // print the content as 'bytes'
+	// fmt.Println("File size : ", len(run))                // print the content as 'bytes'
+	// fmt.Println("Expected files : ", len(run)/chunkSize) // print the content as 'bytes'
+
+	// words := strings.Fields(str)
+	var chuncks []string
+	for len(run) > 0 {
+		a := string(run[0])
+		run = run[1:]
+		if (len(buffer.String()) + len(a)) < chunkSize {
+			buffer.WriteString(a)
+			// fmt.Println(len(buffer.String()))
+		} else {
+			chuncks = append(chuncks, buffer.String())
+			buffer.Reset()
+			buffer.WriteString(a)
+		}
+	}
+	chuncks = append(chuncks, buffer.String())
+	for i := 0; i < len(chuncks); i++ {
+		// fmt.Println("Chunk#", numMapFiles, ": ", chuncks[i])
+		_ = ioutil.WriteFile(mapFileName(numMapFiles), []byte(chuncks[i]), 0777)
+		// fmt.Println(err)
+		numMapFiles++
+	}
 	return numMapFiles, nil
 }
 
